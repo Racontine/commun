@@ -4,6 +4,7 @@ const BRANCH = 'main';
 
 const tokenInput = document.getElementById('githubToken');
 const saveTokenBtn = document.getElementById('saveTokenBtn');
+const tokenStatus = document.getElementById('tokenStatus');
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 const uploadSection = document.querySelector('.upload-section');
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedToken = localStorage.getItem('gh_pat');
     if (savedToken) {
         tokenInput.value = savedToken;
+        validateToken(savedToken);
     }
 });
 
@@ -25,9 +27,47 @@ saveTokenBtn.addEventListener('click', () => {
     const token = tokenInput.value.trim();
     if (token) {
         localStorage.setItem('gh_pat', token);
+        validateToken(token);
         showToast('Token sauvegardé !');
     }
 });
+
+async function validateToken(token) {
+    if (!token) {
+        updateTokenStatus(false);
+        return;
+    }
+
+    // Optimistic checking (grey out while checking)
+    tokenStatus.className = 'status-indicator';
+
+    try {
+        const response = await fetch('https://api.github.com/user', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            updateTokenStatus(true);
+        } else {
+            updateTokenStatus(false);
+        }
+    } catch (e) {
+        updateTokenStatus(false);
+    }
+}
+
+function updateTokenStatus(isValid) {
+    tokenStatus.className = 'status-indicator'; // Reset
+    if (isValid) {
+        tokenStatus.classList.add('valid');
+        tokenStatus.title = "Token valide";
+    } else {
+        tokenStatus.classList.add('invalid');
+        tokenStatus.title = "Token invalide";
+    }
+}
 
 dropZone.addEventListener('click', () => fileInput.click());
 
