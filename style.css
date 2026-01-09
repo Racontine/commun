@@ -212,21 +212,6 @@ button:hover {
     background: rgba(255, 255, 255, 0.02);
 }
 
-.drop-zone input {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    font-size: 0;
-    /* Hide text */
-    appearance: none;
-    /* Remove native appearance */
-    -webkit-appearance: none;
-}
-
 .icon-container {
     color: var(--primary-glow);
     margin-bottom: 1rem;
