@@ -81,7 +81,7 @@ async function processAndUpload(file) {
         const isVideo = file.type.startsWith('video/') || ['mp4', 'mpeg', 'avi', 'mov', 'mkv', 'webm'].includes(ext);
 
         if ((isAudio || isVideo) && ext !== 'mp3') {
-            updateProgress(10, "Extraction Audio (MP3)...");
+            updateProgress(10, "Compression Audio (64kbps)...");
             try {
                 const mp3Blob = await convertToMp3(file);
 
@@ -207,7 +207,7 @@ function encodeBufferToMp3(audioBuffer) {
     const channels = 1; // Mono is enough for Alice and saves space/time, but let's try to keep stereo if possible.
     // LameJS supports stereo.
     const sampleRate = audioBuffer.sampleRate;
-    const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128); // 128kbps
+    const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 64); // 64kbps (Optimized for Alice Box)
 
     const samples = audioBuffer.getChannelData(0); // Get Left Channel (or Mono)
     // Convert float samples to 16-bit PCM
