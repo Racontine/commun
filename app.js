@@ -196,13 +196,22 @@ async function processAndUpload(file) {
         // 7. Shorten URL
         let finalUrl = rawUrl;
         try {
-            // Using a CORS proxy to call TinyURL
-            const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://tinyurl.com/api-create.php?url=${rawUrl}`);
+            // Encode the target URL Component safely
+            const encodedTarget = encodeURIComponent(rawUrl);
+            // Call via AllOrigins to avoid some CORS issues if corsproxy is flaky
+            // Switching to https://api.allorigins.win/get?url=... involves JSON parsing
+            // Let's stick to corsproxy but fix encoding first.
+            const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodedTarget}`);
+
+            console.log("Requesting shortener:", shortenerUrl);
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
-                if (text.startsWith('http')) {
+                // Basic validation: must start with http and be short
+                if (text.startsWith('http') && text.length < 100) {
                     finalUrl = text;
+                } else {
+                    console.warn("Shortener returned non-url:", text);
                 }
             }
         } catch (e) {
@@ -302,13 +311,28 @@ function showResult(url, name) {
     uploadedFilename.innerText = name;
     qrContainer.innerHTML = '';
 
-    // Generate QR (Low ECC for simpler code if possible, but default is usually M)
+    // Generate QR
     new QRCode(qrContainer, {
         text: url,
         width: 200,
         height: 200,
-        correctLevel: QRCode.CorrectLevel.L // Low error correction = fewer blocks = easier to scan
+        correctLevel: QRCode.CorrectLevel.L
     });
+
+    // Add clickable link for verification
+    const linkContainer = document.createElement('div');
+    linkContainer.style.marginTop = '1rem';
+    linkContainer.style.fontSize = '0.9rem';
+    linkContainer.style.wordBreak = 'break-all';
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.innerText = url;
+    link.target = '_blank';
+    link.style.color = '#00b894';
+
+    linkContainer.appendChild(link);
+    qrContainer.appendChild(linkContainer);
 }
 
 function resetApp() {
