@@ -1,0 +1,18 @@
+# Media directories (content should be uploaded via App or managed separately)
+media/
+audio/
+QRCODE/
+output_qr/
+test/
+SAUVEGARDE PI OK HAT AUDIO/
+
+# Python
+__pycache__/
+*.pyc
+
+# System
+Thumbs.db
+.DS_Store
+
+# Secrets
+token_git.txt
