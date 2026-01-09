@@ -153,13 +153,19 @@ button:hover {
     width: 15px;
     height: 15px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #636e72;
+    /* Visible grey by default */
     margin-top: auto;
     margin-bottom: auto;
     margin-left: 10px;
     transition: all 0.3s;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    display: inline-block;
+    /* Ensure it renders */
+    flex-shrink: 0;
+    /* Prevent squashing */
 }
+
 
 .status-indicator.valid {
     background-color: #00b894;
@@ -214,6 +220,11 @@ button:hover {
     height: 100%;
     opacity: 0;
     cursor: pointer;
+    font-size: 0;
+    /* Hide text */
+    appearance: none;
+    /* Remove native appearance */
+    -webkit-appearance: none;
 }
 
 .icon-container {
