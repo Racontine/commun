@@ -198,12 +198,12 @@ async function processAndUpload(file) {
         try {
             // Encode the target URL Component safely
             const encodedTarget = encodeURIComponent(rawUrl);
-            // Call via AllOrigins to avoid some CORS issues if corsproxy is flaky
-            // Switching to https://api.allorigins.win/get?url=... involves JSON parsing
-            // Let's stick to corsproxy but fix encoding first.
-            const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodedTarget}`);
 
-            console.log("Requesting shortener:", shortenerUrl);
+            // Switch to is.gd for DIRECT redirection (TinyURL adds an interstitial page sometimes)
+            // API: https://is.gd/create.php?format=simple&url=...
+            const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
+
+            console.log("Requesting shortener (is.gd):", shortenerUrl);
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
