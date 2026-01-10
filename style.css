@@ -460,6 +460,54 @@ button:hover {
     animation: slideUp 0.3s ease-out;
 }
 
+/* Storage Indicator */
+.storage-box {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.storage-text {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+}
+
+.storage-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.storage-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--success);
+    transition: width 0.5s ease;
+}
+
+/* Delete Button */
+.delete-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    padding: 0.4rem;
+    margin-left: 0.5rem;
+    transition: color 0.2s;
+    font-size: 1.1rem;
+}
+
+.delete-btn:hover {
+    color: #ff7675;
+    background: rgba(255, 0, 0, 0.1);
+    border-radius: 4px;
+    transform: none;
+    /* Override default button hover */
+}
+
 @keyframes slideUp {
     from {
         transform: translate(-50%, 20px);

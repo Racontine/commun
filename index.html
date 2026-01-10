@@ -40,6 +40,16 @@
                         <button id="saveTokenBtn">Sauvegarder</button>
                         <div id="tokenStatus" class="status-indicator" title="Statut du token"></div>
                     </div>
+                    <!-- Storage Indicator -->
+                    <div class="storage-box hidden" id="storageBox">
+                        <div class="storage-text">
+                            <span>Stockage Git</span>
+                            <span id="storageValue">0 MB / 1 GB</span>
+                        </div>
+                        <div class="storage-bar-bg">
+                            <div class="storage-bar-fill" id="storageFill"></div>
+                        </div>
+                    </div>
                     <p class="hint">Nécessite le scope <code>repo</code> ou `public_repo`.</p>
                 </section>
 
@@ -109,7 +119,7 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast hidden">Message ici</div>
 
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
 </body>
 
 </html>
