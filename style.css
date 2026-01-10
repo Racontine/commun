@@ -521,42 +521,55 @@ button:hover {
 }
 
 /* Mobile adjustments for Library Item */
+/* Mobile adjustments for Library Item (Stacked Layout) */
 @media (max-width: 480px) {
     .library-item {
-        padding: 0.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.8rem;
         gap: 0.5rem;
     }
 
     .item-icon {
         display: none;
-        /* Save space */
-    }
-
-    .item-name {
-        font-size: 0.85rem;
-    }
-
-    .item-rating {
-        margin-left: 0.5rem;
-        gap: 0;
-    }
-
-    .star {
-        font-size: 0.9rem;
-    }
-
-    .delete-btn {
-        padding: 0.2rem;
-        font-size: 1rem;
     }
 
     .item-info {
-        flex: 1;
-        min-width: 0;
-        margin-right: 0.5rem;
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .item-name {
+        font-size: 0.95rem;
+        white-space: normal;
+        /* Allow wrap */
+        overflow: visible;
+        text-overflow: clip;
+        line-height: 1.3;
     }
 
     .item-right-section {
-        flex-shrink: 0;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        /* Align stars right */
+        align-items: center;
+        margin-top: 0.2rem;
+    }
+
+    .item-rating {
+        margin-left: 0;
+    }
+
+    .star {
+        font-size: 1.2rem;
+        /* Easier to tap */
+        padding: 0 2px;
+    }
+
+    .delete-btn {
+        padding: 0.4rem;
+        font-size: 1.1rem;
+        margin-left: 1rem;
     }
 }
