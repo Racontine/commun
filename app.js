@@ -1,11 +1,15 @@
-const REPO_OWNER = 'lumios-le-jeu';
-const REPO_NAME = 'alice-media';
-const BRANCH = 'main';
+/* Configuration State */
+let REPO_OWNER = '';
+let REPO_NAME = '';
+const BRANCH = 'main'; // Could be dynamic too, but main is standard
 
 /* DOM Elements */
+const repoOwnerInput = document.getElementById('repoOwner');
+const repoNameInput = document.getElementById('repoName');
 const tokenInput = document.getElementById('githubToken');
-const saveTokenBtn = document.getElementById('saveTokenBtn');
+const saveConfigBtn = document.getElementById('saveConfigBtn');
 const tokenStatus = document.getElementById('tokenStatus');
+
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 const uploadSection = document.querySelector('.upload-section');
@@ -26,34 +30,53 @@ const searchInput = document.getElementById('searchInput');
 const starFilter = document.getElementById('starFilter');
 
 /* State */
-let availableFiles = []; // { name: "foo.mp3", url: "...", sha: "...", type: "audio" }
-let ratings = {}; // { "foo.mp3": 4 }
+let availableFiles = [];
+let ratings = {};
 
 document.addEventListener('DOMContentLoaded', () => {
-    const savedToken = localStorage.getItem('gh_pat');
-    if (savedToken) {
-        tokenInput.value = savedToken;
-        validateToken(savedToken);
-        initLibrary(savedToken);
-        fetchRepoUsage(savedToken);
+    loadConfig();
+});
+
+saveConfigBtn.addEventListener('click', () => {
+    const owner = repoOwnerInput.value.trim();
+    const repo = repoNameInput.value.trim();
+    const token = tokenInput.value.trim();
+
+    if (owner && repo && token) {
+        localStorage.setItem('gh_owner', owner);
+        localStorage.setItem('gh_repo', repo);
+        localStorage.setItem('gh_pat', token);
+
+        loadConfig(); // Reload state
+        showToast('Configuration sauvegardée !');
     } else {
-        libraryList.innerHTML = '<div class="loader">Veuillez entrer un token pour voir la bibliothèque.</div>';
+        showToast('Veuillez remplir tous les champs.');
     }
 });
 
-saveTokenBtn.addEventListener('click', () => {
-    const token = tokenInput.value.trim();
-    if (token) {
-        localStorage.setItem('gh_pat', token);
+function loadConfig() {
+    REPO_OWNER = localStorage.getItem('gh_owner') || '';
+    REPO_NAME = localStorage.getItem('gh_repo') || '';
+    const token = localStorage.getItem('gh_pat') || '';
+
+    // Fill inputs
+    if (REPO_OWNER) repoOwnerInput.value = REPO_OWNER;
+    if (REPO_NAME) repoNameInput.value = REPO_NAME;
+    if (token) tokenInput.value = token;
+
+    if (REPO_OWNER && REPO_NAME && token) {
         validateToken(token);
-        showToast('Token sauvegardé !');
         initLibrary(token);
         fetchRepoUsage(token);
+    } else {
+        libraryList.innerHTML = '<div class="loader">Configurez vos accès (Pseudo, Repo, Token) à gauche pour commencer.</div>';
     }
-});
+}
 
 /* --- LIBRARY LOGIC --- */
 async function initLibrary(token) {
+    if (!REPO_OWNER || !REPO_NAME) return;
+
     libraryList.innerHTML = '<div class="loader">Chargement des sons...</div>';
 
     // 1. Fetch Ratings
@@ -91,7 +114,13 @@ async function initLibrary(token) {
                 }));
             renderLibrary();
         } else {
-            throw new Error("Impossible de lister les fichiers audio.");
+            // Likely 404 if folder doesn't exist yet
+            if (r.status === 404) {
+                availableFiles = [];
+                renderLibrary(); // Empty list is fine
+            } else {
+                throw new Error(`Erreur ${r.status}: ${r.statusText}`);
+            }
         }
     } catch (e) {
         libraryList.innerHTML = `<div class="loader" style="color:#ff7675">${e.message}</div>`;
@@ -99,21 +128,21 @@ async function initLibrary(token) {
 }
 
 async function fetchRepoUsage(token) {
+    if (!REPO_OWNER || !REPO_NAME) return;
     try {
         const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (r.ok) {
             const data = await r.json();
-            const sizeKB = data.size; // Size in KB
+            const sizeKB = data.size;
             const sizeMB = (sizeKB / 1024).toFixed(1);
-            const limitMB = 1000; // 1GB limit approx
+            const limitMB = 1000;
             const percent = Math.min((sizeKB / (limitMB * 1024)) * 100, 100).toFixed(1);
 
             storageValue.innerText = `${sizeMB} MB / 1 GB`;
             storageFill.style.width = `${percent}%`;
 
-            // Color warning
             if (percent > 90) storageFill.style.backgroundColor = '#ff7675';
             else if (percent > 70) storageFill.style.backgroundColor = '#fdcb6e';
             else storageFill.style.backgroundColor = '#00b894';
@@ -128,10 +157,13 @@ async function fetchRepoUsage(token) {
 function renderLibrary() {
     libraryList.innerHTML = '';
 
-    if (!searchInput || !starFilter) return;
+    if (availableFiles.length === 0) {
+        libraryList.innerHTML = '<div class="loader">Aucun fichier audio trouvé. Uploadez-en un à gauche !</div>';
+        return;
+    }
 
-    const term = searchInput.value.toLowerCase();
-    const minStars = parseInt(starFilter.value) || 0;
+    const term = searchInput ? searchInput.value.toLowerCase() : '';
+    const minStars = starFilter ? (parseInt(starFilter.value) || 0) : 0;
 
     const filtered = availableFiles.filter(file => {
         const score = ratings[file.name] || 0;
@@ -157,7 +189,7 @@ function renderLibrary() {
                 <div class="item-icon">🎵</div>
                 <div class="item-name" title="${file.name}">${file.name}</div>
             </div>
-            <div class="item-right-section" style="display:flex; align-items:center;">
+            <div class="item-right-section">
                 <div class="item-rating">
                     ${[1, 2, 3, 4, 5].map(i => `
                         <span class="star ${i <= score ? 'filled' : ''}" 
@@ -178,10 +210,10 @@ function renderLibrary() {
 if (searchInput) searchInput.addEventListener('input', renderLibrary);
 if (starFilter) starFilter.addEventListener('change', renderLibrary);
 
-/* --- RATING & DELETE LOGIC --- */
+/* --- ACTIONS --- */
 async function rateFile(filename, score) {
     const token = localStorage.getItem('gh_pat');
-    if (!token) return;
+    if (!token || !REPO_OWNER || !REPO_NAME) return;
 
     ratings[filename] = score;
     renderLibrary();
@@ -222,14 +254,12 @@ async function deleteFile(name, path, sha) {
     if (!confirm(`Voulez-vous vraiment supprimer "${name}" ?`)) return;
 
     const token = localStorage.getItem('gh_pat');
-    if (!token) return;
+    if (!token || !REPO_OWNER || !REPO_NAME) return;
 
-    // Remove from UI immediately
     availableFiles = availableFiles.filter(f => f.name !== name);
     renderLibrary();
 
     try {
-        // DELETE request
         const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
             method: 'DELETE',
             headers: {
@@ -245,20 +275,17 @@ async function deleteFile(name, path, sha) {
 
         if (response.ok) {
             showToast(`${name} supprimé ! 🗑️`);
-            fetchRepoUsage(token); // Update storage
+            fetchRepoUsage(token);
         } else {
             throw new Error(response.statusText);
         }
     } catch (e) {
         showToast(`Erreur suppression: ${e.message}`);
-        // Reload library to restore state if failed
         initLibrary(token);
     }
 }
 
-/* --- QR Helper --- */
 async function generateQRFromUrl(rawUrl, name) {
-    console.log("Generating QR for existing file:", name);
     resetUIForUpload();
     updateProgress(50, "Génération lien is.gd...");
 
@@ -282,7 +309,7 @@ async function generateQRFromUrl(rawUrl, name) {
     }
 }
 
-/* --- EXISTING AUTH & UPLOAD LOGIC --- */
+/* --- AUTH & UPLOAD --- */
 async function validateToken(token) {
     if (!token) {
         updateTokenStatus(false);
@@ -336,8 +363,8 @@ function handleFiles(files) {
 
 async function processAndUpload(file) {
     const token = localStorage.getItem('gh_pat');
-    if (!token) {
-        showToast('Erreur: Token invalide.');
+    if (!token || !REPO_OWNER || !REPO_NAME) {
+        showToast('Erreur: Configuration incomplète (Token/Repo).');
         return;
     }
     resetUIForUpload();
@@ -357,7 +384,6 @@ async function processAndUpload(file) {
                 fileToUpload = new File([mp3Blob], newName, { type: 'audio/mp3' });
                 filename = newName;
             } catch (err) {
-                console.warn("Conversion failed", err);
                 if (!isVideo) showToast("Conversion MP3 échouée: Upload original");
             }
         }
@@ -407,7 +433,6 @@ async function processAndUpload(file) {
         try {
             const encodedTarget = encodeURIComponent(rawUrl);
             const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
-
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
@@ -417,7 +442,6 @@ async function processAndUpload(file) {
 
         updateProgress(100, "Terminé !");
         showResult(finalUrl, sanitizedName);
-
         initLibrary(token);
         fetchRepoUsage(token);
 

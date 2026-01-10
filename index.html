@@ -35,9 +35,17 @@
                 <!-- Configuration Section (Token) -->
                 <section class="config-section" id="configSection">
                     <div class="input-group">
+                        <label for="repoOwner">Nom d'utilisateur GitHub</label>
+                        <input type="text" id="repoOwner" placeholder="Ex: lumios-le-jeu">
+
+                        <label for="repoName">Nom du Dépôt</label>
+                        <input type="text" id="repoName" placeholder="Ex: alice-media">
+
                         <label for="githubToken">GitHub Token (PAT)</label>
                         <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-                        <button id="saveTokenBtn">Sauvegarder</button>
+
+                        <button id="saveConfigBtn" style="width:100%; margin-top:0.5rem;">Sauvegarder
+                            Configuration</button>
                         <div id="tokenStatus" class="status-indicator" title="Statut du token"></div>
                     </div>
                     <!-- Storage Indicator -->
@@ -119,7 +127,7 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast hidden">Message ici</div>
 
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=10"></script>
 </body>
 
 </html>
