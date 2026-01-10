@@ -21,64 +21,95 @@
 
     <div class="background-glow"></div>
 
-    <div class="container">
+    <div class="container expanded">
         <header>
-            <h1>Alice Box <span>Uploader</span></h1>
-            <p>Envoyez un média vers Alice et obtenez le QR Code magie.</p>
+            <h1>Alice Box <span>Manager</span></h1>
+            <p>Envoyez des médias ou gérez la bibliothèque existante.</p>
         </header>
 
-        <!-- Configuration Section (Token) -->
-        <section class="config-section" id="configSection">
-            <div class="input-group">
-                <label for="githubToken">GitHub Token (PAT)</label>
-                <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-                <button id="saveTokenBtn">Sauvegarder</button>
-                <div id="tokenStatus" class="status-indicator" title="Statut du token"></div>
-            </div>
-            <p class="hint">Nécessite le scope <code>repo</code> ou `public_repo`.</p>
-        </section>
+        <!-- Main Grid Layout -->
+        <main class="app-grid">
 
-        <!-- Upload Section -->
-        <section class="upload-section glass-panel">
-            <div class="drop-zone" id="dropZone">
-                <div class="icon-container">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 16V8M12 8L9 11M12 8L15 11" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M3 15V16C3 18.2091 4.79086 20 7 20H17C19.2091 20 21 18.2091 21 16V15"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
+            <!-- LEFT COLUMN: Upload & QR -->
+            <div class="left-panel">
+                <!-- Configuration Section (Token) -->
+                <section class="config-section" id="configSection">
+                    <div class="input-group">
+                        <label for="githubToken">GitHub Token (PAT)</label>
+                        <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                        <button id="saveTokenBtn">Sauvegarder</button>
+                        <div id="tokenStatus" class="status-indicator" title="Statut du token"></div>
+                    </div>
+                    <p class="hint">Nécessite le scope <code>repo</code> ou `public_repo`.</p>
+                </section>
+
+                <!-- Upload Section -->
+                <section class="upload-section glass-panel">
+                    <div class="drop-zone" id="dropZone">
+                        <div class="icon-container">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 16V8M12 8L9 11M12 8L15 11" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M3 15V16C3 18.2091 4.79086 20 7 20H17C19.2091 20 21 18.2091 21 16V15"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <h3>Glissez un fichier ici</h3>
+                        <p>ou cliquez pour parcourir (MP3, WAV, MP4)</p>
+                    </div>
+                    <!-- Hidden Input -->
+                    <input type="file" id="fileInput" accept=".mp3,.wav,.mp4,.mkv,.ogg" style="display: none;">
+
+                    <div class="progress-container hidden" id="progressContainer">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <span id="progressText">0%</span>
+                    </div>
+                </section>
+
+                <!-- Result Section -->
+                <section class="result-section hidden" id="resultSection">
+                    <div class="glass-panel success-panel">
+                        <h2>C'est prêt !</h2>
+                        <div id="qrcode" class="qr-container"></div>
+                        <p class="filename" id="uploadedFilename">mon_son.mp3</p>
+                        <button class="btn-primary" onclick="resetApp()">Nouveau fichier</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RIGHT COLUMN: Library -->
+            <aside class="library-panel glass-panel">
+                <div class="library-header">
+                    <h2>📚 Bibliothèque</h2>
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="Rechercher...">
+                        <select id="starFilter">
+                            <option value="0">Toutes les notes</option>
+                            <option value="1">1+ ⭐</option>
+                            <option value="2">2+ ⭐</option>
+                            <option value="3">3+ ⭐</option>
+                            <option value="4">4+ ⭐</option>
+                            <option value="5">5 ⭐ uniquement</option>
+                        </select>
+                    </div>
                 </div>
-                <h3>Glissez un fichier ici</h3>
-                <p>ou cliquez pour parcourir (MP3, WAV, MP4)</p>
-            </div>
-            <!-- Hidden Input -->
-            <input type="file" id="fileInput" accept=".mp3,.wav,.mp4,.mkv,.ogg" style="display: none;">
-
-            <div class="progress-container hidden" id="progressContainer">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+                <div id="libraryList" class="library-list">
+                    <div class="loader">Connectez-vous pour voir la liste...</div>
                 </div>
-                <span id="progressText">0%</span>
-            </div>
-        </section>
+            </aside>
 
-        <!-- Result Section -->
-        <section class="result-section hidden" id="resultSection">
-            <div class="glass-panel success-panel">
-                <h2>C'est prêt !</h2>
-                <div id="qrcode" class="qr-container"></div>
-                <p class="filename" id="uploadedFilename">mon_son.mp3</p>
-                <button class="btn-primary" onclick="resetApp()">Nouveau fichier</button>
-            </div>
-        </section>
+        </main>
 
     </div>
 
     <!-- Notification Toast -->
     <div id="toast" class="toast hidden">Message ici</div>
 
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=4"></script>
 </body>
 
 </html>

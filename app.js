@@ -2,6 +2,7 @@ const REPO_OWNER = 'lumios-le-jeu';
 const REPO_NAME = 'alice-media';
 const BRANCH = 'main';
 
+/* DOM Elements */
 const tokenInput = document.getElementById('githubToken');
 const saveTokenBtn = document.getElementById('saveTokenBtn');
 const tokenStatus = document.getElementById('tokenStatus');
@@ -14,12 +15,25 @@ const progressFill = document.getElementById('progressFill');
 const progressText = document.getElementById('progressText');
 const qrContainer = document.getElementById('qrcode');
 const uploadedFilename = document.getElementById('uploadedFilename');
+const toast = document.getElementById('toast');
+
+/* Library DOM */
+const libraryList = document.getElementById('libraryList');
+const searchInput = document.getElementById('searchInput');
+const starFilter = document.getElementById('starFilter');
+
+/* State */
+let availableFiles = []; // { name: "foo.mp3", url: "...", type: "audio" }
+let ratings = {}; // { "foo.mp3": 4 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const savedToken = localStorage.getItem('gh_pat');
     if (savedToken) {
         tokenInput.value = savedToken;
         validateToken(savedToken);
+        initLibrary(savedToken); // Load library if token exists
+    } else {
+        libraryList.innerHTML = '<div class="loader">Veuillez entrer un token pour voir la bibliothèque.</div>';
     }
 });
 
@@ -29,8 +43,189 @@ saveTokenBtn.addEventListener('click', () => {
         localStorage.setItem('gh_pat', token);
         validateToken(token);
         showToast('Token sauvegardé !');
+        initLibrary(token);
     }
 });
+
+/* --- LIBRARY LOGIC --- */
+async function initLibrary(token) {
+    libraryList.innerHTML = '<div class="loader">Chargement des sons...</div>';
+
+    // 1. Fetch Ratings
+    try {
+        const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/ratings.json`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'If-None-Match': '' } // No cache
+        });
+        if (r.ok) {
+            const data = await r.json();
+            const content = atob(data.content);
+            ratings = JSON.parse(content);
+        } else {
+            ratings = {}; // No ratings yet
+        }
+    } catch (e) {
+        console.warn("Could not load ratings:", e);
+        ratings = {};
+    }
+
+    // 2. Fetch Files (flat list from media/audio)
+    availableFiles = [];
+    try {
+        const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/media/audio`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (r.ok) {
+            const items = await r.json();
+            availableFiles = items
+                .filter(item => item.type === 'file')
+                .map(item => ({
+                    name: item.name,
+                    url: item.download_url, // raw url
+                    path: item.path
+                }));
+            renderLibrary();
+        } else {
+            throw new Error("Impossible de lister les fichiers audio.");
+        }
+    } catch (e) {
+        libraryList.innerHTML = `<div class="loader" style="color:#ff7675">${e.message}</div>`;
+    }
+}
+
+function renderLibrary() {
+    libraryList.innerHTML = '';
+
+    // Safety check if elements exist (e.g. if partial HTML load)
+    if (!searchInput || !starFilter) return;
+
+    const term = searchInput.value.toLowerCase();
+    const minStars = parseInt(starFilter.value) || 0;
+
+    const filtered = availableFiles.filter(file => {
+        const score = ratings[file.name] || 0;
+        const matchesName = file.name.toLowerCase().includes(term);
+
+        if (minStars === 5) return score === 5 && matchesName;
+        return score >= minStars && matchesName;
+    });
+
+    if (filtered.length === 0) {
+        libraryList.innerHTML = '<div class="loader">Aucun résultat.</div>';
+        return;
+    }
+
+    filtered.forEach(file => {
+        const row = document.createElement('div');
+        row.className = 'library-item';
+
+        const score = ratings[file.name] || 0;
+
+        // Note: passing strings to onclick requires escaping, but filenames represent simple MP3s mostly.
+        // We use data attributes to be safer if we attach Listeners, but for now inline is faster for this Prototype.
+        row.innerHTML = `
+            <div class="item-info" onclick="generateQRFromUrl('${file.url}', '${file.name}')">
+                <div class="item-icon">🎵</div>
+                <div class="item-name" title="${file.name}">${file.name}</div>
+            </div>
+            <div class="item-rating">
+                ${[1, 2, 3, 4, 5].map(i => `
+                    <span class="star ${i <= score ? 'filled' : ''}" 
+                          onclick="rateFile('${file.name}', ${i})">★</span>
+                `).join('')}
+            </div>
+        `;
+        libraryList.appendChild(row);
+    });
+}
+
+// Search & Filter Listeners
+if (searchInput) searchInput.addEventListener('input', renderLibrary);
+if (starFilter) starFilter.addEventListener('change', renderLibrary);
+
+/* --- RATING LOGIC --- */
+async function rateFile(filename, score) {
+    const token = localStorage.getItem('gh_pat');
+    if (!token) return;
+
+    // Update local state optimistic
+    ratings[filename] = score;
+    renderLibrary(); // Re-render to show stars immediately
+
+    // Save to GitHub
+    try {
+        // 1. Get SHA of existing ratings.json (if any)
+        let sha = null;
+        try {
+            const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/ratings.json`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (r.ok) {
+                const data = await r.json();
+                sha = data.sha;
+            }
+        } catch (e) { }
+
+        // 2. Upload new content
+        const content = btoa(JSON.stringify(ratings, null, 2));
+        const body = {
+            message: `Update rating for ${filename}`,
+            content: content,
+            branch: BRANCH
+        };
+        if (sha) body.sha = sha;
+
+        await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/ratings.json`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        console.log(`Rating saved for ${filename}: ${score}`);
+        showToast(`Note enregistrée : ${score}/5 ⭐`);
+
+    } catch (e) {
+        console.error("Save rating failed", e);
+        showToast("Erreur sauvegarde note");
+    }
+}
+
+/* --- QR Helper --- */
+async function generateQRFromUrl(rawUrl, name) {
+    // Show UI loading
+    console.log("Generating QR for existing file:", name);
+    resetUIForUpload();
+    updateProgress(50, "Génération lien is.gd...");
+
+    // Use the existing logic part? Or simplify because we already have the URL.
+    // We need to SHORTEN it again because we don't store shortened URLs.
+
+    try {
+        let finalUrl = rawUrl;
+        const encodedTarget = encodeURIComponent(rawUrl);
+        const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
+
+        const shortRes = await fetch(shortenerUrl);
+        if (shortRes.ok) {
+            const text = await shortRes.text();
+            if (text.startsWith('http') && text.length < 100) finalUrl = text;
+        }
+
+        updateProgress(100, "Terminé !");
+
+        // Show result manually
+        showResult(finalUrl, name);
+
+    } catch (e) {
+        showToast("Erreur génération QR");
+        resetApp();
+    }
+}
+
+
+/* --- EXISTING AUTH & UPLOAD LOGIC --- */
 
 async function validateToken(token) {
     if (!token) {
@@ -111,12 +306,6 @@ async function processAndUpload(file) {
         // 1. Audio Conversion (if needed)
         // If it's an audio file but NOT mp3, convert it.
         // Also if it's a WAV, OGG, etc.
-        // (Video files MP4/MKV refer to 'media/video' and are usually kept as is, or we could extract audio?
-        // The user said "convertir le fichier en .mp3", assuming they want audio.)
-
-        // 1. Audio/Video Conversion
-        // We convert ANY audio or video file to MP3 if it's not already MP3.
-        // This ensures Alice Box (which uses mpg123/aplay) can play the sound.
         const isAudio = file.type.startsWith('audio/') || ext === 'wav' || ext === 'ogg';
         const isVideo = file.type.startsWith('video/') || ['mp4', 'mpeg', 'avi', 'mov', 'mkv', 'webm'].includes(ext);
 
@@ -130,8 +319,6 @@ async function processAndUpload(file) {
                 fileToUpload = new File([mp3Blob], newName, { type: 'audio/mp3' });
                 filename = newName;
                 console.log("Conversion successful:", filename);
-
-                // Since we converted to MP3, we force the folder to use 'media/audio' logic later
             } catch (err) {
                 console.warn("Conversion failed, uploading original:", err);
                 if (isVideo) {
@@ -219,7 +406,12 @@ async function processAndUpload(file) {
         }
 
         updateProgress(100, "Terminé !");
+
+        // Finalize Result
         showResult(finalUrl, sanitizedName);
+
+        // Refresh Library in background to show new file
+        initLibrary(token);
 
     } catch (error) {
         console.error(error);
