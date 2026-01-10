@@ -190,7 +190,7 @@ async function processAndUpload(file) {
         if (!response.ok) throw new Error(`Erreur GitHub: ${response.statusText}`);
 
         // 6. Generate Link
-        updateProgress(80, "Génération du lien...");
+        updateProgress(80, "Génération lien is.gd...");
         const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${path}`;
 
         // 7. Shorten URL
