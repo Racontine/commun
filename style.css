@@ -300,22 +300,22 @@ body {
 }
 
 .icon-btn {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
     color: var(--text-gray);
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 50%;
+    padding: 0.6rem;
+    border-radius: 12px;
     transition: all 0.3s;
     display: flex;
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(5px);
 }
 
 .icon-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--primary-glow);
-    transform: rotate(45deg);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px) rotate(15deg);
 }
 
 header {

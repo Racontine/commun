@@ -77,9 +77,10 @@ function loadConfig() {
         initLibrary(token);
         fetchRepoUsage(token);
         // Hide config by default if connected
-        configForm.classList.add('hidden');
+        if (configForm) configForm.classList.add('hidden');
     } else {
-        configForm.classList.remove('hidden');
+        if (configForm) configForm.classList.remove('hidden');
+        if (toggleConfigBtn) toggleConfigBtn.style.color = '#ff7675'; // Rouge par défaut
         libraryList.innerHTML = '<div class="loader">Configurez vos accès (Pseudo, Repo, Token) à gauche pour commencer.</div>';
     }
 }
@@ -146,22 +147,22 @@ async function fetchRepoUsage(token) {
         });
         if (r.ok) {
             const data = await r.json();
-            const sizeKB = data.size;
-            const sizeMB = (sizeKB / 1024).toFixed(1);
+            const sizeKB = parseInt(data.size) || 0;
+            const sizeMBNum = sizeKB / 1024;
+            const sizeMBText = sizeMBNum.toFixed(1);
             const limitMB = 1000;
             const percent = Math.min((sizeKB / (limitMB * 1024)) * 100, 100).toFixed(1);
 
-            storageValue.innerText = `${sizeMB} MB / 1 GB`;
+            storageValue.innerText = `${sizeMBText} MB / 1 GB`;
             storageFill.style.width = `${percent}%`;
 
-            // Storage Time Calculation: 11min = 1.9MB -> ~ 5.8 min/MB
-            const totalLimitMB = 1000;
-            const remainingMB = totalLimitMB - sizeMB;
-            const remainingMin = Math.max(0, remainingMB * (11 / 1.9));
-            const hours = Math.floor(remainingMin / 60);
-            const minutes = Math.floor(remainingMin % 60);
+            // Storage Time Calculation: 11min = 1.9MB -> ~ 5.79 min/MB
+            const remainingMB = Math.max(0, limitMB - sizeMBNum);
+            const totalRemainingMin = remainingMB * 5.79;
+            const hrs = Math.floor(totalRemainingMin / 60);
+            const mins = Math.floor(totalRemainingMin % 60);
 
-            storageTime.innerText = `~ ${hours}h ${minutes}min d'audio restant`;
+            storageTime.innerText = `~ ${hrs}h ${mins}min d'audio restant`;
 
             if (percent > 90) storageFill.style.backgroundColor = '#ff7675';
             else if (percent > 70) storageFill.style.backgroundColor = '#fdcb6e';
@@ -436,12 +437,16 @@ async function validateToken(token) {
 
 function updateTokenStatus(isValid) {
     tokenStatus.className = 'status-indicator';
+    const gearBtn = document.getElementById('toggleConfigBtn');
+
     if (isValid) {
         tokenStatus.classList.add('valid');
         tokenStatus.title = "Token valide";
+        if (gearBtn) gearBtn.style.color = '#00b894'; // Vert
     } else {
         tokenStatus.classList.add('invalid');
         tokenStatus.title = "Token invalide";
+        if (gearBtn) gearBtn.style.color = '#ff7675'; // Rouge
     }
 }
 
