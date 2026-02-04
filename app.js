@@ -98,7 +98,7 @@ async function initLibrary(token) {
         });
         if (r.ok) {
             const data = await r.json();
-            const content = atob(data.content);
+            const content = b64DecodeUnicode(data.content);
             ratings = JSON.parse(content);
         } else {
             ratings = {};
@@ -212,13 +212,15 @@ function renderLibrary() {
         const score = typeof metadata === 'number' ? metadata : (metadata.score || 0);
         const type = typeof metadata === 'number' ? 'Livre' : (metadata.type || 'Livre');
 
+        const safeName = file.name.replace(/'/g, "\\'");
+
         row.innerHTML = `
-            <div class="item-info" onclick="generateQRFromUrl('${file.url}', '${file.name}')">
+            <div class="item-info" onclick="generateQRFromUrl('${file.url}', '${safeName}')">
                 <div class="item-icon">🎵</div>
                 <div class="item-column">
                     <div class="item-name" title="${file.name}">${file.name}</div>
                     <span class="item-badge ${type.toLowerCase()}" 
-                          onclick="event.stopPropagation(); toggleFileType('${file.name}')"
+                          onclick="event.stopPropagation(); toggleFileType('${safeName}')"
                           title="Cliquez pour changer le type">${type}</span>
                 </div>
             </div>
@@ -226,15 +228,15 @@ function renderLibrary() {
                 <div class="item-rating">
                     ${[1, 2, 3, 4, 5].map(i => `
                         <span class="star ${i <= score ? 'filled' : ''}" 
-                               onclick="event.stopPropagation(); rateFile('${file.name}', ${i})">★</span>
+                               onclick="event.stopPropagation(); rateFile('${safeName}', ${i})">★</span>
                     `).join('')}
                 </div>
-                <button class="download-btn" onclick="event.stopPropagation(); downloadTag('${file.url}', '${file.name}')" title="Télécharger l'étiquette">
+                <button class="download-btn" onclick="event.stopPropagation(); downloadTag('${file.url}', '${safeName}')" title="Télécharger l'étiquette">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                     </svg>
                 </button>
-                <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.name}', '${file.path}', '${file.sha}')" title="Supprimer">
+                <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${safeName}', '${file.path}', '${file.sha}')" title="Supprimer">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
@@ -298,32 +300,11 @@ async function rateFile(filename, score) {
     ratings[filename] = { score: score, type: type };
     renderLibrary();
 
+    ratings[filename] = { score: score, type: type };
+    renderLibrary();
+
     try {
-        let sha = null;
-        try {
-            const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/ratings.json`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (r.ok) {
-                const data = await r.json();
-                sha = data.sha;
-            }
-        } catch (e) { }
-
-        const content = btoa(JSON.stringify(ratings, null, 2));
-        const body = {
-            message: `Update rating for ${filename}`,
-            content: content,
-            branch: BRANCH
-        };
-        if (sha) body.sha = sha;
-
-        await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/ratings.json`, {
-            method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-
+        await pushRatings(token);
     } catch (e) {
         console.error("Save rating failed", e);
         showToast("Erreur sauvegarde note");
@@ -366,7 +347,7 @@ async function pushRatings(token) {
             }
         } catch (e) { }
 
-        const content = btoa(JSON.stringify(ratings, null, 2));
+        const content = b64EncodeUnicode(JSON.stringify(ratings, null, 2));
         const body = {
             message: `Update metadata/ratings`,
             content: content,
@@ -689,4 +670,17 @@ function showToast(msg) {
     toast.innerText = msg;
     toast.classList.remove('hidden');
     setTimeout(() => toast.classList.add('hidden'), 3000);
+}
+
+/* --- UTILS --- */
+function b64EncodeUnicode(str) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+        return String.fromCharCode('0x' + p1);
+    }));
+}
+
+function b64DecodeUnicode(str) {
+    return decodeURIComponent(atob(str).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
 }
