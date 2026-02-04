@@ -193,12 +193,40 @@ body {
     flex-shrink: 0;
 }
 
+.item-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 4px;
+}
+
 .item-name {
     font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--text-white);
+}
+
+.item-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-gray);
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.item-badge.livre {
+    border: 1px solid #4a90e2;
+    color: #4a90e2;
+}
+
+.item-badge.chanson {
+    border: 1px solid #f5a623;
+    color: #f5a623;
 }
 
 /* Stars Rating */
@@ -245,6 +273,33 @@ body {
     margin-top: 2rem;
 }
 
+
+.header-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-gray);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--primary-glow);
+    transform: rotate(45deg);
+}
 
 header {
     text-align: center;
@@ -488,6 +543,13 @@ button:hover {
     transition: width 0.5s ease;
 }
 
+.storage-time {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--primary-glow);
+    font-weight: 500;
+}
+
 /* Delete Button */
 .delete-btn {
     background: none;
@@ -506,6 +568,78 @@ button:hover {
     border-radius: 4px;
     transform: none;
     /* Override default button hover */
+}
+
+/* Metadata Selector Styles */
+.upload-meta {
+    margin-top: 1.5rem;
+    text-align: left;
+}
+
+.meta-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    margin-bottom: 0.8rem;
+}
+
+.type-selector {
+    display: flex;
+    gap: 1rem;
+}
+
+.radio-card {
+    flex: 1;
+    cursor: pointer;
+}
+
+.radio-card input {
+    display: none;
+}
+
+.radio-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.2s;
+}
+
+.radio-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.radio-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.radio-card input:checked+.radio-tile {
+    background: rgba(157, 78, 221, 0.2);
+    border-color: var(--primary-glow);
+    box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
+}
+
+.download-btn {
+    background: none;
+    border: none;
+    color: var(--success);
+    cursor: pointer;
+    padding: 0.4rem;
+    margin-left: 0.5rem;
+    transition: all 0.2s;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+
+.download-btn:hover {
+    background: rgba(0, 184, 148, 0.1);
+    border-radius: 4px;
 }
 
 @keyframes slideUp {

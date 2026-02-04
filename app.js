@@ -25,9 +25,13 @@ const toast = document.getElementById('toast');
 const storageBox = document.getElementById('storageBox');
 const storageValue = document.getElementById('storageValue');
 const storageFill = document.getElementById('storageFill');
+const storageTime = document.getElementById('storageTime');
 const libraryList = document.getElementById('libraryList');
 const searchInput = document.getElementById('searchInput');
 const starFilter = document.getElementById('starFilter');
+const typeFilter = document.getElementById('typeFilter');
+const toggleConfigBtn = document.getElementById('toggleConfigBtn');
+const configForm = document.getElementById('configForm');
 
 /* State */
 let availableFiles = [];
@@ -35,6 +39,10 @@ let ratings = {};
 
 document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
+
+    toggleConfigBtn.addEventListener('click', () => {
+        configForm.classList.toggle('hidden');
+    });
 });
 
 saveConfigBtn.addEventListener('click', () => {
@@ -68,7 +76,10 @@ function loadConfig() {
         validateToken(token);
         initLibrary(token);
         fetchRepoUsage(token);
+        // Hide config by default if connected
+        configForm.classList.add('hidden');
     } else {
+        configForm.classList.remove('hidden');
         libraryList.innerHTML = '<div class="loader">Configurez vos accès (Pseudo, Repo, Token) à gauche pour commencer.</div>';
     }
 }
@@ -143,6 +154,15 @@ async function fetchRepoUsage(token) {
             storageValue.innerText = `${sizeMB} MB / 1 GB`;
             storageFill.style.width = `${percent}%`;
 
+            // Storage Time Calculation: 11min = 1.9MB -> ~ 5.8 min/MB
+            const totalLimitMB = 1000;
+            const remainingMB = totalLimitMB - sizeMB;
+            const remainingMin = Math.max(0, remainingMB * (11 / 1.9));
+            const hours = Math.floor(remainingMin / 60);
+            const minutes = Math.floor(remainingMin % 60);
+
+            storageTime.innerText = `~ ${hours}h ${minutes}min d'audio restant`;
+
             if (percent > 90) storageFill.style.backgroundColor = '#ff7675';
             else if (percent > 70) storageFill.style.backgroundColor = '#fdcb6e';
             else storageFill.style.backgroundColor = '#00b894';
@@ -164,13 +184,18 @@ function renderLibrary() {
 
     const term = searchInput ? searchInput.value.toLowerCase() : '';
     const minStars = starFilter ? (parseInt(starFilter.value) || 0) : 0;
+    const typeTerm = typeFilter ? typeFilter.value : 'all';
 
     const filtered = availableFiles.filter(file => {
-        const score = ratings[file.name] || 0;
-        const matchesName = file.name.toLowerCase().includes(term);
+        const metadata = ratings[file.name] || {};
+        const score = typeof metadata === 'number' ? metadata : (metadata.score || 0);
+        const type = typeof metadata === 'number' ? 'Livre' : (metadata.type || 'Livre');
 
-        if (minStars === 5) return score === 5 && matchesName;
-        return score >= minStars && matchesName;
+        const matchesName = file.name.toLowerCase().includes(term);
+        const matchesStars = (minStars === 5) ? (score === 5) : (score >= minStars);
+        const matchesType = (typeTerm === 'all') || (type === typeTerm);
+
+        return matchesName && matchesStars && matchesType;
     });
 
     if (filtered.length === 0) {
@@ -182,21 +207,31 @@ function renderLibrary() {
         const row = document.createElement('div');
         row.className = 'library-item';
 
-        const score = ratings[file.name] || 0;
+        const metadata = ratings[file.name] || {};
+        const score = typeof metadata === 'number' ? metadata : (metadata.score || 0);
+        const type = typeof metadata === 'number' ? 'Livre' : (metadata.type || 'Livre');
 
         row.innerHTML = `
             <div class="item-info" onclick="generateQRFromUrl('${file.url}', '${file.name}')">
                 <div class="item-icon">🎵</div>
-                <div class="item-name" title="${file.name}">${file.name}</div>
+                <div class="item-column">
+                    <div class="item-name" title="${file.name}">${file.name}</div>
+                    <span class="item-badge ${type.toLowerCase()}">${type}</span>
+                </div>
             </div>
             <div class="item-right-section">
                 <div class="item-rating">
                     ${[1, 2, 3, 4, 5].map(i => `
                         <span class="star ${i <= score ? 'filled' : ''}" 
-                              onclick="rateFile('${file.name}', ${i})">★</span>
+                               onclick="event.stopPropagation(); rateFile('${file.name}', ${i})">★</span>
                     `).join('')}
                 </div>
-                <button class="delete-btn" onclick="deleteFile('${file.name}', '${file.path}', '${file.sha}')" title="Supprimer">
+                <button class="download-btn" onclick="event.stopPropagation(); downloadTag('${file.url}', '${file.name}')" title="Télécharger l'étiquette">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                    </svg>
+                </button>
+                <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.name}', '${file.path}', '${file.sha}')" title="Supprimer">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
@@ -209,13 +244,55 @@ function renderLibrary() {
 
 if (searchInput) searchInput.addEventListener('input', renderLibrary);
 if (starFilter) starFilter.addEventListener('change', renderLibrary);
+if (typeFilter) typeFilter.addEventListener('change', renderLibrary);
+
+/* --- TAG DOWNLOAD --- */
+async function downloadTag(rawUrl, name) {
+    showToast("Génération de l'étiquette...");
+
+    // Create short URL first
+    let finalUrl = rawUrl;
+    try {
+        const encodedTarget = encodeURIComponent(rawUrl);
+        const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
+        const shortRes = await fetch(shortenerUrl);
+        if (shortRes.ok) {
+            const text = await shortRes.text();
+            if (text.startsWith('http') && text.length < 100) finalUrl = text;
+        }
+    } catch (e) { console.warn("Shortener failed, using raw URL"); }
+
+    // Use a temporary div to render QR
+    const tempDiv = document.createElement('div');
+    new QRCode(tempDiv, { text: finalUrl, width: 400, height: 400, correctLevel: QRCode.CorrectLevel.H });
+
+    // Wait for QR to render (qrcode.js is synchronous but just in case)
+    setTimeout(() => {
+        const img = tempDiv.querySelector('img');
+        if (img) {
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = `${name.split('.')[0]}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Étiquette téléchargée !");
+        } else {
+            showToast("Erreur lors de la génération");
+        }
+    }, 100);
+}
 
 /* --- ACTIONS --- */
 async function rateFile(filename, score) {
     const token = localStorage.getItem('gh_pat');
     if (!token || !REPO_OWNER || !REPO_NAME) return;
 
-    ratings[filename] = score;
+    // Preserve existing type, default to Livre
+    const existing = ratings[filename] || {};
+    const type = typeof existing === 'object' ? (existing.type || 'Livre') : 'Livre';
+
+    ratings[filename] = { score: score, type: type };
     renderLibrary();
 
     try {
@@ -248,6 +325,36 @@ async function rateFile(filename, score) {
         console.error("Save rating failed", e);
         showToast("Erreur sauvegarde note");
     }
+}
+
+async function pushRatings(token) {
+    if (!token || !REPO_OWNER || !REPO_NAME) return;
+    try {
+        let sha = null;
+        try {
+            const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/ratings.json`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (r.ok) {
+                const data = await r.json();
+                sha = data.sha;
+            }
+        } catch (e) { }
+
+        const content = btoa(JSON.stringify(ratings, null, 2));
+        const body = {
+            message: `Update metadata/ratings`,
+            content: content,
+            branch: BRANCH
+        };
+        if (sha) body.sha = sha;
+
+        await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/ratings.json`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+    } catch (e) { console.error("Push ratings failed", e); }
 }
 
 async function deleteFile(name, path, sha) {
@@ -376,6 +483,8 @@ async function processAndUpload(file) {
         const isAudio = file.type.startsWith('audio/') || ext === 'wav' || ext === 'ogg';
         const isVideo = file.type.startsWith('video/') || ['mp4', 'mpeg', 'avi', 'mov', 'mkv', 'webm'].includes(ext);
 
+        const selectedType = document.querySelector('input[name="uploadType"]:checked').value;
+
         if ((isAudio || isVideo) && ext !== 'mp3') {
             updateProgress(10, "Compression Audio (64kbps)...");
             try {
@@ -441,6 +550,11 @@ async function processAndUpload(file) {
         } catch (e) { }
 
         updateProgress(100, "Terminé !");
+
+        // Save metadata locally before pushing ratings.json
+        ratings[sanitizedName] = { score: 0, type: selectedType };
+        await pushRatings(token); // Side-effect: updates ratings.json on git
+
         showResult(finalUrl, sanitizedName);
         initLibrary(token);
         fetchRepoUsage(token);

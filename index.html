@@ -23,7 +23,17 @@
 
     <div class="container expanded">
         <header>
-            <h1>Alice Box <span>Manager</span></h1>
+            <div class="header-main">
+                <h1>Alice Box <span>Manager</span></h1>
+                <button id="toggleConfigBtn" class="icon-btn" title="Paramètres">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
             <p>Envoyez des médias ou gérez la bibliothèque existante.</p>
         </header>
 
@@ -34,31 +44,35 @@
             <div class="left-panel">
                 <!-- Configuration Section (Token) -->
                 <section class="config-section" id="configSection">
-                    <div class="input-group">
-                        <label for="repoOwner">Nom d'utilisateur GitHub</label>
-                        <input type="text" id="repoOwner" placeholder="Ex: lumios-le-jeu">
+                    <div id="configForm" class="hidden">
+                        <div class="input-group">
+                            <label for="repoOwner">Nom d'utilisateur GitHub</label>
+                            <input type="text" id="repoOwner" placeholder="Ex: lumios-le-jeu">
 
-                        <label for="repoName">Nom du Dépôt</label>
-                        <input type="text" id="repoName" placeholder="Ex: alice-media">
+                            <label for="repoName">Nom du Dépôt</label>
+                            <input type="text" id="repoName" placeholder="Ex: alice-media">
 
-                        <label for="githubToken">GitHub Token (PAT)</label>
-                        <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                            <label for="githubToken">GitHub Token (PAT)</label>
+                            <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
 
-                        <button id="saveConfigBtn" style="width:100%; margin-top:0.5rem;">Sauvegarder
-                            Configuration</button>
-                        <div id="tokenStatus" class="status-indicator" title="Statut du token"></div>
+                            <button id="saveConfigBtn" style="width:100%; margin-top:0.5rem;">Sauvegarder
+                                Configuration</button>
+                            <div id="tokenStatus" class="status-indicator" title="Statut du token"></div>
+                        </div>
+                        <p class="hint">Nécessite le scope <code>repo</code> ou `public_repo`.</p>
                     </div>
+
                     <!-- Storage Indicator -->
                     <div class="storage-box hidden" id="storageBox">
                         <div class="storage-text">
-                            <span>Stockage Git</span>
+                            <span id="storageTitle">Stockage Git</span>
                             <span id="storageValue">0 MB / 1 GB</span>
                         </div>
                         <div class="storage-bar-bg">
                             <div class="storage-bar-fill" id="storageFill"></div>
                         </div>
+                        <div id="storageTime" class="storage-time">~ 0h 0min d'audio restant</div>
                     </div>
-                    <p class="hint">Nécessite le scope <code>repo</code> ou `public_repo`.</p>
                 </section>
 
                 <!-- Upload Section -->
@@ -77,6 +91,28 @@
                         <h3>Glissez un fichier ici</h3>
                         <p>ou cliquez pour parcourir (MP3, WAV, MP4)</p>
                     </div>
+
+                    <!-- Metadata Selection -->
+                    <div class="upload-meta">
+                        <span class="meta-label">Type de média :</span>
+                        <div class="type-selector">
+                            <label class="radio-card">
+                                <input type="radio" name="uploadType" value="Livre" checked>
+                                <span class="radio-tile">
+                                    <span class="radio-icon">📖</span>
+                                    <span class="radio-label">Livre</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="uploadType" value="Chanson">
+                                <span class="radio-tile">
+                                    <span class="radio-icon">🎵</span>
+                                    <span class="radio-label">Chanson</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Hidden Input -->
                     <input type="file" id="fileInput" accept=".mp3,.wav,.mp4,.mkv,.ogg" style="display: none;">
 
@@ -112,6 +148,11 @@
                             <option value="3">3+ ⭐</option>
                             <option value="4">4+ ⭐</option>
                             <option value="5">5 ⭐ uniquement</option>
+                        </select>
+                        <select id="typeFilter">
+                            <option value="all">Tous les types</option>
+                            <option value="Livre">Livres 📖</option>
+                            <option value="Chanson">Chansons 🎵</option>
                         </select>
                     </div>
                 </div>
