@@ -540,12 +540,13 @@ button:hover {
     bottom: 2rem;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 1rem 2rem;
     border-radius: 50px;
     border: 1px solid var(--glass-border);
     animation: slideUp 0.3s ease-out;
+    z-index: 10000;
 }
 
 /* Storage Indicator */

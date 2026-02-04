@@ -258,14 +258,19 @@ async function downloadTag(rawUrl, name) {
     // Create short URL first
     let finalUrl = rawUrl;
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
         const encodedTarget = encodeURIComponent(rawUrl);
         const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
-        const shortRes = await fetch(shortenerUrl);
+        const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (shortRes.ok) {
             const text = await shortRes.text();
             if (text.startsWith('http') && text.length < 100) finalUrl = text;
         }
-    } catch (e) { console.warn("Shortener failed, using raw URL"); }
+    } catch (e) { console.warn("Shortener slow or failed, using raw URL"); }
 
     // Use a temporary div to render QR
     const tempDiv = document.createElement('div');
@@ -402,7 +407,7 @@ async function generateQRFromUrl(rawUrl, name) {
     let finalUrl = rawUrl;
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
 
         const encodedTarget = encodeURIComponent(rawUrl);
         const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
@@ -551,7 +556,7 @@ async function processAndUpload(file) {
         let finalUrl = rawUrl;
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
             const encodedTarget = encodeURIComponent(rawUrl);
             const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
