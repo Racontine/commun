@@ -9,5 +9,9 @@
   "CERCLE_DE_FEU.mp3": 5,
   "le_cheval_enchante.mp3": 3,
   "Dingo_cherche_un_metier.mp3": 5,
-  "Barbie.mp3": 5
+  "Barbie.mp3": 5,
+  "dans_la_foret_un_grand_cerf.mp3": {
+    "score": 0,
+    "type": "Livre"
+  }
 }
