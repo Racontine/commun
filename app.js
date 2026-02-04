@@ -257,14 +257,11 @@ async function downloadTag(rawUrl, name) {
     let finalUrl = (typeof existing === 'object' && existing.shortUrl) ? existing.shortUrl : rawUrl;
 
     if (finalUrl === rawUrl) {
-        showToast("Raccourcissement du lien...");
+        showToast("Lien is.gd...");
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
             const encodedTarget = encodeURIComponent(rawUrl);
             const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
-            const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
-            clearTimeout(timeoutId);
+            const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
                 if (text.startsWith('http')) {
@@ -412,14 +409,11 @@ async function generateQRFromUrl(rawUrl, name) {
     let finalUrl = (typeof existing === 'object' && existing.shortUrl) ? existing.shortUrl : rawUrl;
 
     if (finalUrl === rawUrl) {
-        updateProgress(50, "Génération du lien court...");
+        updateProgress(50, "Génération lien is.gd...");
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
             const encodedTarget = encodeURIComponent(rawUrl);
             const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
-            const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
-            clearTimeout(timeoutId);
+            const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
                 if (text.startsWith('http')) {
@@ -427,10 +421,10 @@ async function generateQRFromUrl(rawUrl, name) {
                     saveShortUrl(name, finalUrl);
                 }
             }
-        } catch (e) { console.warn("Shortener slow/failed"); }
+        } catch (e) { console.warn("Shortener failed"); }
     }
 
-    updateProgress(100, "Prêt !");
+    updateProgress(100, "Terminé !");
     showResult(finalUrl, name);
 }
 
@@ -566,17 +560,14 @@ async function processAndUpload(file) {
 
         if (!response.ok) throw new Error(`Erreur GitHub: ${response.statusText}`);
 
-        updateProgress(80, "Génération du lien court...");
+        updateProgress(80, "Génération lien is.gd...");
         const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${path}`;
 
         let finalUrl = rawUrl;
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
             const encodedTarget = encodeURIComponent(rawUrl);
             const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
-            const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
-            clearTimeout(timeoutId);
+            const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
                 if (text.startsWith('http')) finalUrl = text;
