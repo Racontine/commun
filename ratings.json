@@ -15,14 +15,17 @@
     "score": 4,
     "type": "Livre"
   },
-  "Barbie.mp3": 5,
+  "Barbie.mp3": {
+    "score": 5,
+    "type": "Chanson"
+  },
   "dans_la_foret_un_grand_cerf.mp3": {
     "score": 0,
     "type": "Livre"
   },
   "Ainsi_font__font__font.mp3": {
     "score": 3,
-    "type": "Livre"
+    "type": "Chanson"
   },
   "Les_Princesses_Licornes.mp3": {
     "score": 5,
