@@ -16,3 +16,11 @@ Thumbs.db
 
 # Secrets
 token_git.txt
+
+# Large files and backups
+*.img.gz
+*.ctb
+*.stl
+sauv alice/
+3D/
+SAUVEGARDE PI OK HAT AUDIO/

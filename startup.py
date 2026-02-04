@@ -2,7 +2,7 @@ import time
 import os
 from player import play
 
-WELCOME = "/home/pi/alice/media/audio/welcome.wav"
+WELCOME = "/home/alice/media/audio/welcome.wav"
 
 # Laisse le système audio se stabiliser
 time.sleep(2)

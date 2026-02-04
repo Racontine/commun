@@ -72,23 +72,7 @@ def ensure_file(raw_url: str) -> str:
 # ======================
 # CONFIG
 # ======================
-import json
-
-CONFIG_FILE = "/home/alice/media/config.json"
-# Fallback local path for dev/windows
-if not os.path.exists(CONFIG_FILE) and os.path.exists("config.json"):
-    CONFIG_FILE = "config.json"
-
-def load_config():
-    try:
-        with open(CONFIG_FILE, 'r') as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"⚠️ Erreur chargement config: {e}")
-        return {}
-
-config_data = load_config()
-DEFAULT_VOLUME_PERCENT = config_data.get("volume", 90)
+DEFAULT_VOLUME_PERCENT = 90
 DEFAULT_GAIN = int(8192 * DEFAULT_VOLUME_PERCENT / 100)
 
 COOLDOWN_SEC = 3
@@ -223,8 +207,7 @@ def main():
     else:
         print("⚠️ WELCOME_AUDIO introuvable")
 
-    last_scanned_qr = None
-    missing_qr_count = 0
+    last_play_time = 0
     frame_count = 0
 
     try:
@@ -245,29 +228,18 @@ def main():
             
             codes = decode(gray)
             if not codes:
-                missing_qr_count += 1
-                if missing_qr_count > 20:  # Reset apres ~10-20 frames vides (env. 2 sec)
-                    if last_scanned_qr is not None:
-                        print("♻️ Reset du scan (carte retirée)")
-                    last_scanned_qr = None
-                
                 # Small sleep to be nice to CPU if we are looping very fast
                 time.sleep(0.05)
                 continue
-            
-            # QR Found -> Reset missing count
-            missing_qr_count = 0
+
+            # Check Cooldown
+            now = time.time()
+            if now - last_play_time < COOLDOWN_SEC:
+                continue
 
             # Process Code
             qr_text = codes[0].data.decode("utf-8").strip()
-            
-            # Smart Detection Logic
-            if qr_text == last_scanned_qr:
-                # Même QR qu'avant, on ne fait rien (on laisse l'audio tourner)
-                continue
-            
-            print(f"🔍 Nouveau QR détecté : {qr_text}")
-            last_scanned_qr = qr_text
+            print(f"🔍 QR détecté : {qr_text}")
 
             if Path(DETECTED_AUDIO).exists():
                player.play_blocking(DETECTED_AUDIO)
@@ -275,6 +247,8 @@ def main():
             # Download & Play
             local_path = ensure_file(qr_text)
             player.start(local_path)
+
+            last_play_time = time.time()
 
     except KeyboardInterrupt:
         print("\n🛑 Arrêt demandé")

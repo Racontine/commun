@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alice Box Setup</title>
+    <style>
+        :root {
+            --primary: #9b59b6;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #8e44ad;
+        }
+
+        .status-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .success {
+            color: var(--success);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Alice Box 🐰</h1>
+
+        <div class="status-box">
+            <div class="status-item">
+                <span>Volume actuel:</span>
+                <strong>{{ volume }}%</strong>
+            </div>
+            <div class="status-item">
+                <span>IP:</span>
+                <code>{{ ip_address }}</code>
+            </div>
+        </div>
+
+        <form action="/configure" method="POST">
+            <div class="form-group">
+                <label for="volume">Volume par défaut (0-100)</label>
+                <input type="number" id="volume" name="volume" value="{{ volume }}" min="0" max="100">
+            </div>
+
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 25px 0;">
+
+            <h3>Ajouter un WiFi</h3>
+            <div class="form-group">
+                <label for="ssid">Nom du WiFi (SSID)</label>
+                <input type="text" id="ssid" name="ssid" placeholder="Ex: MaBox_WiFi">
+            </div>
+            <div class="form-group">
+                <label for="psk">Mot de passe</label>
+                <input type="password" id="psk" name="psk" placeholder="Clé de sécurité">
+            </div>
+            <div class="form-group">
+                <label for="priority">Priorité (facultatif)</label>
+                <input type="number" id="priority" name="priority" value="60" min="0" max="100"
+                    placeholder="Ex: 80 pour prioritaire">
+            </div>
+
+            <button type="submit">Sauvegarder & Redémarrer</button>
+        </form>
+    </div>
+</body>
+
+</html>
