@@ -397,26 +397,29 @@ async function deleteFile(name, path, sha) {
 
 async function generateQRFromUrl(rawUrl, name) {
     resetUIForUpload();
-    updateProgress(50, "Génération lien is.gd...");
+    updateProgress(50, "Génération du QR code...");
 
+    let finalUrl = rawUrl;
     try {
-        let finalUrl = rawUrl;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+
         const encodedTarget = encodeURIComponent(rawUrl);
         const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
 
-        const shortRes = await fetch(shortenerUrl);
+        const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (shortRes.ok) {
             const text = await shortRes.text();
             if (text.startsWith('http') && text.length < 100) finalUrl = text;
         }
-
-        updateProgress(100, "Terminé !");
-        showResult(finalUrl, name);
-
     } catch (e) {
-        showToast("Erreur génération QR");
-        resetApp();
+        console.warn("Le raccourcisseur est trop lent ou a échoué, utilisation du lien direct.");
     }
+
+    updateProgress(100, "Prêt !");
+    showResult(finalUrl, name);
 }
 
 /* --- AUTH & UPLOAD --- */
@@ -542,14 +545,19 @@ async function processAndUpload(file) {
 
         if (!response.ok) throw new Error(`Erreur GitHub: ${response.statusText}`);
 
-        updateProgress(80, "Génération lien is.gd...");
+        updateProgress(80, "Génération du QR code...");
         const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${path}`;
 
         let finalUrl = rawUrl;
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
+
             const encodedTarget = encodeURIComponent(rawUrl);
             const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
-            const shortRes = await fetch(shortenerUrl);
+            const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
             if (shortRes.ok) {
                 const text = await shortRes.text();
                 if (text.startsWith('http') && text.length < 100) finalUrl = text;
