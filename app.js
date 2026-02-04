@@ -259,7 +259,7 @@ async function downloadTag(rawUrl, name) {
     let finalUrl = rawUrl;
     try {
         const encodedTarget = encodeURIComponent(rawUrl);
-        const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
+        const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
         const shortRes = await fetch(shortenerUrl);
         if (shortRes.ok) {
             const text = await shortRes.text();
@@ -296,9 +296,6 @@ async function rateFile(filename, score) {
     // Preserve existing type, default to Livre
     const existing = ratings[filename] || {};
     const type = typeof existing === 'object' ? (existing.type || 'Livre') : 'Livre';
-
-    ratings[filename] = { score: score, type: type };
-    renderLibrary();
 
     ratings[filename] = { score: score, type: type };
     renderLibrary();
@@ -405,7 +402,7 @@ async function generateQRFromUrl(rawUrl, name) {
     try {
         let finalUrl = rawUrl;
         const encodedTarget = encodeURIComponent(rawUrl);
-        const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
+        const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
 
         const shortRes = await fetch(shortenerUrl);
         if (shortRes.ok) {
@@ -551,7 +548,7 @@ async function processAndUpload(file) {
         let finalUrl = rawUrl;
         try {
             const encodedTarget = encodeURIComponent(rawUrl);
-            const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
+            const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
@@ -671,7 +668,7 @@ function showResult(url, name) {
     downloadBtn.onclick = () => downloadTag(url, safeName);
 
     // Insert before the filename/reset button
-    resultSection.insertBefore(downloadBtn, uploadedFilename);
+    uploadedFilename.parentNode.insertBefore(downloadBtn, uploadedFilename);
 }
 
 function resetApp() {
