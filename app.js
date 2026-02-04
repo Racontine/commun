@@ -254,16 +254,16 @@ if (typeFilter) typeFilter.addEventListener('change', renderLibrary);
 /* --- TAG DOWNLOAD --- */
 async function downloadTag(rawUrl, name) {
     const existing = ratings[name] || {};
-    // On rafraîchit si c'est un ancien lien is.gd ou si pas de lien court
-    let finalUrl = (typeof existing === 'object' && existing.shortUrl && existing.shortUrl.includes('v.gd'))
+    // On rafraîchit si c'est un ancien lien ou si pas de lien court TinyURL
+    let finalUrl = (typeof existing === 'object' && existing.shortUrl && existing.shortUrl.includes('tinyurl.com'))
         ? existing.shortUrl
         : rawUrl;
 
     if (finalUrl === rawUrl) {
-        showToast("Lien v.gd...");
+        showToast("Lien TinyURL...");
         try {
             const encodedTarget = encodeURIComponent(rawUrl);
-            const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://v.gd/create.php?format=simple&url=${encodedTarget}`);
+            const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodedTarget}`);
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
@@ -409,16 +409,16 @@ async function generateQRFromUrl(rawUrl, name) {
     resetUIForUpload();
 
     const existing = ratings[name] || {};
-    // On rafraîchit si c'est un ancien lien is.gd ou si pas de lien court
-    let finalUrl = (typeof existing === 'object' && existing.shortUrl && existing.shortUrl.includes('v.gd'))
+    // On rafraîchit si ce n'est pas un lien TinyURL
+    let finalUrl = (typeof existing === 'object' && existing.shortUrl && existing.shortUrl.includes('tinyurl.com'))
         ? existing.shortUrl
         : rawUrl;
 
     if (finalUrl === rawUrl) {
-        updateProgress(50, "Génération lien v.gd...");
+        updateProgress(50, "Génération lien TinyURL...");
         try {
             const encodedTarget = encodeURIComponent(rawUrl);
-            const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://v.gd/create.php?format=simple&url=${encodedTarget}`);
+            const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodedTarget}`);
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
@@ -566,13 +566,13 @@ async function processAndUpload(file) {
 
         if (!response.ok) throw new Error(`Erreur GitHub: ${response.statusText}`);
 
-        updateProgress(80, "Génération lien v.gd...");
+        updateProgress(80, "Génération lien TinyURL...");
         const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${path}`;
 
         let finalUrl = rawUrl;
         try {
             const encodedTarget = encodeURIComponent(rawUrl);
-            const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://v.gd/create.php?format=simple&url=${encodedTarget}`);
+            const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodedTarget}`);
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
                 const text = await shortRes.text();
