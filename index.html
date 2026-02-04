@@ -141,19 +141,21 @@
                     <h2>📚 Bibliothèque</h2>
                     <div class="search-bar">
                         <input type="text" id="searchInput" placeholder="Rechercher...">
-                        <select id="starFilter">
-                            <option value="0">Toutes les notes</option>
-                            <option value="1">1+ ⭐</option>
-                            <option value="2">2+ ⭐</option>
-                            <option value="3">3+ ⭐</option>
-                            <option value="4">4+ ⭐</option>
-                            <option value="5">5 ⭐ uniquement</option>
-                        </select>
-                        <select id="typeFilter">
-                            <option value="all">Tous les types</option>
-                            <option value="Livre">Livres 📖</option>
-                            <option value="Chanson">Chansons 🎵</option>
-                        </select>
+                        <div class="filters-group">
+                            <select id="starFilter">
+                                <option value="0">Toutes les notes</option>
+                                <option value="1">1+ ⭐</option>
+                                <option value="2">2+ ⭐</option>
+                                <option value="3">3+ ⭐</option>
+                                <option value="4">4+ ⭐</option>
+                                <option value="5">5 ⭐ uniquement</option>
+                            </select>
+                            <select id="typeFilter">
+                                <option value="all">Tous les types</option>
+                                <option value="Livre">Livres 📖</option>
+                                <option value="Chanson">Chansons 🎵</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div id="libraryList" class="library-list">
