@@ -254,29 +254,24 @@ if (typeFilter) typeFilter.addEventListener('change', renderLibrary);
 /* --- TAG DOWNLOAD --- */
 async function downloadTag(rawUrl, name) {
     const existing = ratings[name] || {};
-    let finalUrl = (typeof existing === 'object' && existing.shortUrl && existing.shortUrl.includes('tinyurl.com'))
+    let finalUrl = (typeof existing === 'object' && existing.shortUrl && (existing.shortUrl.includes('tinyurl.com') || existing.shortUrl.includes('v.gd') || existing.shortUrl.includes('is.gd')))
         ? existing.shortUrl
-        : null;
+        : rawUrl;
 
-    if (!finalUrl) {
-        showToast("Lien TinyURL...");
+    if (finalUrl === rawUrl) {
+        showToast("Lien court...");
         try {
-            const encodedTarget = encodeURIComponent(rawUrl);
-            const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodedTarget}`);
+            const shortenerUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(rawUrl)}`)}`;
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
-                const text = await shortRes.text();
-                if (text.startsWith('http')) {
+                const data = await shortRes.json();
+                const text = data.contents;
+                if (text && text.startsWith('http')) {
                     finalUrl = text;
                     saveShortUrl(name, finalUrl);
                 }
             }
         } catch (e) { console.warn("Shortener failed"); }
-    }
-
-    if (!finalUrl) {
-        showToast("Erreur : Impossible de créer le lien court");
-        return;
     }
 
     // Use a temporary div to render QR
@@ -411,30 +406,24 @@ async function generateQRFromUrl(rawUrl, name) {
     resetUIForUpload();
 
     const existing = ratings[name] || {};
-    let finalUrl = (typeof existing === 'object' && existing.shortUrl && existing.shortUrl.includes('tinyurl.com'))
+    let finalUrl = (typeof existing === 'object' && existing.shortUrl && (existing.shortUrl.includes('tinyurl.com') || existing.shortUrl.includes('v.gd') || existing.shortUrl.includes('is.gd')))
         ? existing.shortUrl
-        : null;
+        : rawUrl;
 
-    if (!finalUrl) {
-        updateProgress(50, "Génération lien TinyURL...");
+    if (finalUrl === rawUrl) {
+        updateProgress(50, "Lien court...");
         try {
-            const encodedTarget = encodeURIComponent(rawUrl);
-            const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodedTarget}`);
+            const shortenerUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(rawUrl)}`)}`;
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
-                const text = await shortRes.text();
-                if (text.startsWith('http')) {
+                const data = await shortRes.json();
+                const text = data.contents;
+                if (text && text.startsWith('http')) {
                     finalUrl = text;
                     saveShortUrl(name, finalUrl);
                 }
             }
         } catch (e) { console.warn("Shortener failed"); }
-    }
-
-    if (!finalUrl) {
-        showToast("Erreur lien court");
-        resetApp();
-        return;
     }
 
     updateProgress(100, "Terminé !");
@@ -573,25 +562,19 @@ async function processAndUpload(file) {
 
         if (!response.ok) throw new Error(`Erreur GitHub: ${response.statusText}`);
 
-        updateProgress(80, "Lien TinyURL...");
+        updateProgress(80, "Lien court...");
         const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${path}`;
 
-        let finalUrl = null;
+        let finalUrl = rawUrl;
         try {
-            const encodedTarget = encodeURIComponent(rawUrl);
-            const shortenerUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodedTarget}`);
+            const shortenerUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(rawUrl)}`)}`;
             const shortRes = await fetch(shortenerUrl);
             if (shortRes.ok) {
-                const text = await shortRes.text();
-                if (text.startsWith('http')) finalUrl = text;
+                const data = await shortRes.json();
+                const text = data.contents;
+                if (text && text.startsWith('http')) finalUrl = text;
             }
         } catch (e) { }
-
-        if (!finalUrl) {
-            showToast("Erreur : lien court impossible.");
-            resetApp();
-            return;
-        }
 
         updateProgress(100, "Terminé !");
 
