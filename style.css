@@ -157,10 +157,15 @@ body {
 
 .filters-group select {
     flex: 1;
-    min-width: 0;
-    /* Allow shrinking below text length */
+    min-width: 120px;
     background-color: #1e1e2e;
     cursor: pointer;
+    color: white;
+}
+
+.filters-group select option {
+    background-color: #1e1e2e;
+    color: white;
 }
 
 .filters-group select:hover {
