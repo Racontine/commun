@@ -672,6 +672,29 @@ button:hover {
     border-radius: 4px;
 }
 
+.download-result-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    margin: 1.5rem auto 0 auto;
+    transition: all 0.3s;
+    font-family: inherit;
+    box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+}
+
+.download-result-btn:hover {
+    background: #00a884;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+}
+
 @keyframes slideUp {
     from {
         transform: translate(-50%, 20px);

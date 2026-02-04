@@ -654,6 +654,19 @@ function showResult(url, name) {
 
     linkContainer.appendChild(link);
     qrContainer.appendChild(linkContainer);
+
+    // Add Download Tag button to Result Section
+    const downloadBtn = document.createElement('button');
+    const safeName = name.replace(/'/g, "\\'");
+    downloadBtn.className = 'download-result-btn';
+    downloadBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        Télécharger l'étiquette
+    `;
+    downloadBtn.onclick = () => downloadTag(url, safeName);
+    qrContainer.appendChild(downloadBtn);
 }
 
 function resetApp() {
