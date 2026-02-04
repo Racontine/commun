@@ -655,7 +655,10 @@ function showResult(url, name) {
     linkContainer.appendChild(link);
     qrContainer.appendChild(linkContainer);
 
-    // Add Download Tag button to Result Section
+    // Add Download Tag button to Result Section (outside QR box)
+    const existingBtn = resultSection.querySelector('.download-result-btn');
+    if (existingBtn) existingBtn.remove();
+
     const downloadBtn = document.createElement('button');
     const safeName = name.replace(/'/g, "\\'");
     downloadBtn.className = 'download-result-btn';
@@ -666,7 +669,9 @@ function showResult(url, name) {
         Télécharger l'étiquette
     `;
     downloadBtn.onclick = () => downloadTag(url, safeName);
-    qrContainer.appendChild(downloadBtn);
+
+    // Insert before the filename/reset button
+    resultSection.insertBefore(downloadBtn, uploadedFilename);
 }
 
 function resetApp() {

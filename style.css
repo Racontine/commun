@@ -161,11 +161,14 @@ body {
     background-color: #1e1e2e;
     cursor: pointer;
     color: white;
+    color-scheme: dark;
+    /* Helps on some browsers */
 }
 
+/* Force dark text for options because browsers often force white background on Windows */
 .filters-group select option {
-    background-color: #1e1e2e;
-    color: white;
+    background-color: white;
+    color: #10002b;
 }
 
 .filters-group select:hover {
