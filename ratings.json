@@ -8,7 +8,10 @@
   "tourne_la_page12.mp3": 2,
   "CERCLE_DE_FEU.mp3": 5,
   "le_cheval_enchante.mp3": 3,
-  "Dingo_cherche_un_metier.mp3": 5,
+  "Dingo_cherche_un_metier.mp3": {
+    "score": 4,
+    "type": "Livre"
+  },
   "Barbie.mp3": 5,
   "dans_la_foret_un_grand_cerf.mp3": {
     "score": 0,
