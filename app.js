@@ -217,7 +217,9 @@ function renderLibrary() {
                 <div class="item-icon">🎵</div>
                 <div class="item-column">
                     <div class="item-name" title="${file.name}">${file.name}</div>
-                    <span class="item-badge ${type.toLowerCase()}">${type}</span>
+                    <span class="item-badge ${type.toLowerCase()}" 
+                          onclick="event.stopPropagation(); toggleFileType('${file.name}')"
+                          title="Cliquez pour changer le type">${type}</span>
                 </div>
             </div>
             <div class="item-right-section">
@@ -325,6 +327,28 @@ async function rateFile(filename, score) {
     } catch (e) {
         console.error("Save rating failed", e);
         showToast("Erreur sauvegarde note");
+    }
+}
+
+async function toggleFileType(filename) {
+    const token = localStorage.getItem('gh_pat');
+    if (!token || !REPO_OWNER || !REPO_NAME) return;
+
+    const existing = ratings[filename] || {};
+    const currentScore = typeof existing === 'object' ? (existing.score || 0) : existing;
+    const currentType = typeof existing === 'object' ? (existing.type || 'Livre') : 'Livre';
+
+    const newType = (currentType === 'Livre') ? 'Chanson' : 'Livre';
+
+    ratings[filename] = { score: currentScore, type: newType };
+    renderLibrary();
+    showToast(`Type changé en : ${newType}`);
+
+    try {
+        await pushRatings(token);
+    } catch (e) {
+        console.error("Toggle type failed", e);
+        showToast("Erreur sauvegarde type");
     }
 }
 
