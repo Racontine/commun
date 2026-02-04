@@ -1,10 +1,10 @@
-# Media directories (content should be uploaded via App or managed separately)
-media/
-audio/
+# Media directories (managed via App/Git)
+media/video/
 QRCODE/
 output_qr/
 test/
-SAUVEGARDE PI OK HAT AUDIO/
+"SAUVEGARDE PI OK HAT AUDIO/"
+"sauv alice/"
 
 # Python
 __pycache__/
@@ -17,10 +17,25 @@ Thumbs.db
 # Secrets
 token_git.txt
 
-# Large files and backups
+# Large files and backups (organizational)
+_ARCHIVES/
+_TESTS_ET_VIEUX/
+_DESIGN/3D/
+_DESIGN/output_qr/
+_DESIGN/QRCODE/
 *.img.gz
 *.ctb
 *.stl
-sauv alice/
-3D/
-SAUVEGARDE PI OK HAT AUDIO/
+
+# Allow ALICE_PI_INSTALL
+!ALICE_PI_INSTALL/
+
+# Allow essential web files (even if they were in subfolders, but they are root now)
+!index.html
+!app.js
+!style.css
+!ratings.json
+!media/
+!media/audio/
+!.nojekyll
+!.gitignore
