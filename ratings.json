@@ -13,7 +13,10 @@
     "score": 5,
     "type": "Chanson"
   },
-  "le_cheval_enchante.mp3": 3,
+  "le_cheval_enchante.mp3": {
+    "score": 3,
+    "type": "Chanson"
+  },
   "Dingo_cherche_un_metier.mp3": {
     "score": 4,
     "type": "Livre"
