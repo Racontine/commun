@@ -253,24 +253,29 @@ if (typeFilter) typeFilter.addEventListener('change', renderLibrary);
 
 /* --- TAG DOWNLOAD --- */
 async function downloadTag(rawUrl, name) {
-    showToast("Génération de l'étiquette...");
+    const existing = ratings[name] || {};
+    let finalUrl = (typeof existing === 'object' && existing.shortUrl) ? existing.shortUrl : rawUrl;
 
-    // Create short URL first
-    let finalUrl = rawUrl;
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        const encodedTarget = encodeURIComponent(rawUrl);
-        const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
-        const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (shortRes.ok) {
-            const text = await shortRes.text();
-            if (text.startsWith('http') && text.length < 100) finalUrl = text;
-        }
-    } catch (e) { console.warn("Shortener slow or failed, using raw URL"); }
+    if (finalUrl === rawUrl) {
+        showToast("Raccourcissement du lien...");
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const encodedTarget = encodeURIComponent(rawUrl);
+            const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
+            const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (shortRes.ok) {
+                const text = await shortRes.text();
+                if (text.startsWith('http')) {
+                    finalUrl = text;
+                    saveShortUrl(name, finalUrl);
+                }
+            }
+        } catch (e) { console.warn("Shortener failed"); }
+    } else {
+        showToast("Génération de l'étiquette...");
+    }
 
     // Use a temporary div to render QR
     const tempDiv = document.createElement('div');
@@ -402,29 +407,40 @@ async function deleteFile(name, path, sha) {
 
 async function generateQRFromUrl(rawUrl, name) {
     resetUIForUpload();
-    updateProgress(50, "Génération du QR code...");
 
-    let finalUrl = rawUrl;
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const existing = ratings[name] || {};
+    let finalUrl = (typeof existing === 'object' && existing.shortUrl) ? existing.shortUrl : rawUrl;
 
-        const encodedTarget = encodeURIComponent(rawUrl);
-        const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
-
-        const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (shortRes.ok) {
-            const text = await shortRes.text();
-            if (text.startsWith('http') && text.length < 100) finalUrl = text;
-        }
-    } catch (e) {
-        console.warn("Le raccourcisseur est trop lent ou a échoué, utilisation du lien direct.");
+    if (finalUrl === rawUrl) {
+        updateProgress(50, "Génération du lien court...");
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const encodedTarget = encodeURIComponent(rawUrl);
+            const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
+            const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (shortRes.ok) {
+                const text = await shortRes.text();
+                if (text.startsWith('http')) {
+                    finalUrl = text;
+                    saveShortUrl(name, finalUrl);
+                }
+            }
+        } catch (e) { console.warn("Shortener slow/failed"); }
     }
 
     updateProgress(100, "Prêt !");
     showResult(finalUrl, name);
+}
+
+function saveShortUrl(name, shortUrl) {
+    if (typeof ratings[name] !== 'object') {
+        ratings[name] = { score: ratings[name] || 0, type: 'Livre' };
+    }
+    ratings[name].shortUrl = shortUrl;
+    const token = localStorage.getItem('gh_pat');
+    if (token) pushRatings(token); // Silent background push
 }
 
 /* --- AUTH & UPLOAD --- */
@@ -550,30 +566,28 @@ async function processAndUpload(file) {
 
         if (!response.ok) throw new Error(`Erreur GitHub: ${response.statusText}`);
 
-        updateProgress(80, "Génération du QR code...");
+        updateProgress(80, "Génération du lien court...");
         const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${path}`;
 
         let finalUrl = rawUrl;
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
             const encodedTarget = encodeURIComponent(rawUrl);
             const shortenerUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodedTarget}`);
             const shortRes = await fetch(shortenerUrl, { signal: controller.signal });
             clearTimeout(timeoutId);
-
             if (shortRes.ok) {
                 const text = await shortRes.text();
-                if (text.startsWith('http') && text.length < 100) finalUrl = text;
+                if (text.startsWith('http')) finalUrl = text;
             }
         } catch (e) { }
 
         updateProgress(100, "Terminé !");
 
         // Save metadata locally before pushing ratings.json
-        ratings[sanitizedName] = { score: 0, type: selectedType };
-        await pushRatings(token); // Side-effect: updates ratings.json on git
+        ratings[sanitizedName] = { score: 0, type: selectedType, shortUrl: finalUrl };
+        await pushRatings(token);
 
         showResult(finalUrl, sanitizedName);
         initLibrary(token);
