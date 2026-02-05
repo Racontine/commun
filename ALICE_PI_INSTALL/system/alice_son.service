@@ -1,0 +1,16 @@
+[Unit]
+Description=Alice Volume Control Web Server
+After=network.target alice.service
+
+[Service]
+Type=simple
+User=alice
+WorkingDirectory=/home/alice
+ExecStart=/usr/bin/python3 /home/alice/ALICE_SON.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

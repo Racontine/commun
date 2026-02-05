@@ -1,0 +1,222 @@
+================================================================
+     🐰 ALICE BOX - CONTRÔLE DU VOLUME SIMPLIFIÉ
+================================================================
+
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│           AVANT (Mode Hotspot) ❌                           │
+│                                                             │
+│   1. SSH → sudo bash autohotspot.sh force                  │
+│   2. WiFi coupé 📡❌                                        │
+│   3. Connecter téléphone à ALICE_SETUP                      │
+│   4. http://192.168.50.1                                    │
+│   5. Configurer volume                                      │
+│   6. Redémarrer le Pi                                       │
+│   7. Reconnecter au WiFi maison                             │
+│                                                             │
+│   ⏱️  Temps : ~5 minutes                                    │
+│   💻 Terminal : Requis (SSH)                                │
+│   📡 WiFi : Coupé                                           │
+│   🌐 Internet : Non disponible                              │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+                           ⬇️ ⬇️ ⬇️
+
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│           MAINTENANT (ALICE_SON) ✅                         │
+│                                                             │
+│   1. Ouvrir navigateur 🌐                                   │
+│   2. http://<IP_DU_PI>:8080                                 │
+│   3. Slider de volume 🎚️                                    │
+│   4. Clic "Sauvegarder" 💾                                  │
+│   5. Fini ! ✨                                              │
+│                                                             │
+│   ⏱️  Temps : ~30 secondes                                  │
+│   💻 Terminal : Non requis                                  │
+│   📡 WiFi : Maintenu                                        │
+│   🌐 Internet : Disponible                                  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+================================================================
+                    INSTALLATION RAPIDE
+================================================================
+
+1️⃣  Transférer les fichiers sur le Pi :
+    
+    scp -r ALICE_PI_INSTALL alice@<IP_PI>:/home/alice/
+
+2️⃣  Se connecter et installer :
+    
+    ssh alice@<IP_PI>
+    cd /home/alice/ALICE_PI_INSTALL
+    chmod +x install_alice_son.sh
+    sudo ./install_alice_son.sh
+
+3️⃣  Accéder à l'interface :
+    
+    Ouvrir dans un navigateur :
+    http://<IP_DU_PI>:8080
+
+================================================================
+                    FONCTIONNALITÉS
+================================================================
+
+✅ Interface web moderne et responsive
+✅ Slider de volume (0-100%)
+✅ Boutons rapides : 25%, 50%, 75%, 100%
+✅ Sauvegarde automatique
+✅ Redémarrage automatique d'Alice
+✅ Raccourcis clavier (↑/↓, +/-, Entrée)
+✅ Compatible : PC, Mac, Smartphone, Tablette
+✅ Pas de coupure WiFi
+✅ Pas besoin de SSH
+✅ Accès depuis n'importe où sur le réseau local
+
+================================================================
+                    ARCHITECTURE SIMPLE
+================================================================
+
+    ┌───────────────┐
+    │  Navigateur   │ ← Vous (PC/Téléphone/Tablette)
+    │ (Téléphone,   │
+    │  Tablette,    │
+    │  Ordinateur)  │
+    └───────┬───────┘
+            │
+            │ http://<IP>:8080
+            ▼
+    ┌───────────────┐
+    │ ALICE_SON.py  │ ← Serveur Web Flask
+    │  (Port 8080)  │    (Tourne en arrière-plan)
+    └───────┬───────┘
+            │
+            │ Lit/Écrit
+            ▼
+    ┌───────────────┐
+    │ config.json   │ ← Configuration
+    │  {volume:90}  │    (/home/alice/media/)
+    └───────┬───────┘
+            │
+            │ Utilisé par
+            ▼
+    ┌───────────────┐
+    │   alice.py    │ ← Application Principale
+    │ (Scan QR +    │    (Lit les QR codes et
+    │  Lecture)     │     joue les sons)
+    └───────────────┘
+
+================================================================
+                    SERVICES SYSTEMD
+================================================================
+
+📊 alice.service
+   └─ Application principale (scan QR + lecture audio)
+   └─ Commandes :
+      • sudo systemctl status alice.service
+      • sudo systemctl restart alice.service
+
+🔊 alice_son.service  🆕
+   └─ Serveur web de contrôle du volume
+   └─ Commandes :
+      • sudo systemctl status alice_son.service
+      • sudo systemctl restart alice_son.service
+
+🌐 autohotspot.service
+   └─ Bascule auto/hotspot (configuration initiale)
+   └─ Commandes :
+      • sudo bash /home/alice/autohotspot.sh force
+
+================================================================
+                    FICHIER CONFIG.JSON
+================================================================
+
+Emplacement : /home/alice/media/config.json
+
+Structure :
+{
+  "volume": 90,          ← Volume (0-100%)
+  "wifi_priority": [     ← Priorités WiFi
+    "MonWiFi_Maison",
+    "MonWiFi_Bureau"
+  ]
+}
+
+IMPORTANT : Ce fichier DOIT être dans /home/alice/media/ !
+
+================================================================
+                    COMMANDES UTILES
+================================================================
+
+🔍 Trouver l'IP du Pi :
+   hostname -I
+
+🌐 URL d'accès :
+   http://<IP_DU_PI>:8080
+
+📊 Voir le statut :
+   sudo systemctl status alice_son.service
+
+📜 Voir les logs :
+   sudo journalctl -u alice_son.service -f
+
+🔄 Redémarrer :
+   sudo systemctl restart alice_son.service
+
+⏹️  Arrêter :
+   sudo systemctl stop alice_son.service
+
+🗑️  Désinstaller :
+   cd /home/alice/ALICE_PI_INSTALL
+   chmod +x uninstall_alice_son.sh
+   sudo ./uninstall_alice_son.sh
+
+================================================================
+                    DÉPANNAGE RAPIDE
+================================================================
+
+❌ La page ne charge pas ?
+   → Vérifier : sudo systemctl status alice_son.service
+   → Redémarrer : sudo systemctl restart alice_son.service
+
+❌ Le volume ne change pas ?
+   → Vérifier que vous avez cliqué sur "Sauvegarder"
+   → Attendre 10 secondes (Alice redémarre)
+   → Vérifier : cat /home/alice/media/config.json
+
+❌ Service ne démarre pas ?
+   → Installer Flask : sudo pip3 install Flask==3.0.0
+   → Logs : sudo journalctl -u alice_son.service -n 50
+
+================================================================
+                    DOCUMENTATION
+================================================================
+
+📖 README.md                     ← Vue d'ensemble complète
+📖 README_ALICE_SON.md           ← Documentation ALICE_SON
+📖 GUIDE_RAPIDE.md               ← Guide utilisateur rapide
+📖 docs/ALICE_SON_DOCUMENTATION.md ← Doc technique détaillée
+📖 AIDE_ALICE_SON.txt            ← Pense-bête commandes
+
+================================================================
+                    ASTUCES PRO 💡
+================================================================
+
+🎯 Créer un raccourci sur le smartphone :
+   1. Ouvrir http://<IP>:8080 dans le navigateur
+   2. Menu → "Ajouter à l'écran d'accueil"
+   3. Vous avez maintenant une app dédiée ! 📱
+
+🎯 Ajouter aux favoris du navigateur :
+   Accès en 1 clic depuis n'importe quel appareil
+
+🎯 Imprimer un QR code pointant vers l'URL :
+   Collez-le sur le frigo pour un accès ultra-rapide !
+
+================================================================
+
+        🎉 Profitez d'Alice avec un contrôle simplifié ! 🎉
+
+================================================================

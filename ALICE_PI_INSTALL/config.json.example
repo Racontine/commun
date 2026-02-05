@@ -1,0 +1,7 @@
+{
+  "volume": 90,
+  "wifi_priority": [
+    "MonWiFi_Maison",
+    "MonWiFi_Bureau"
+  ]
+}
