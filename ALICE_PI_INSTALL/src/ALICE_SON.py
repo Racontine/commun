@@ -153,359 +153,400 @@ HTML_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔊 Racontine - Contrôle</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            --primary: #9d4edd;
+            --primary-glow: #c77dff;
+            --secondary: #3c096c;
+            --bg-dark: #10002b;
+            --text-white: #ffffff;
+            --text-gray: #e0e0e0;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --success: #00b894;
+            --danger: #ff7675;
+            --warning: #f5a623;
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-white);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        /* Background Animation */
+        .background-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            opacity: 0.2;
+            top: -10%;
+            right: -10%;
+            filter: blur(80px);
+            z-index: -1;
+            animation: float 10s infinite ease-in-out;
+        }
+        
+        .background-glow::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #4361ee 0%, transparent 70%);
+            top: 50%;
+            left: -50%;
+            animation: float 15s infinite reverse ease-in-out;
+        }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(-20px, 20px); }
+            100% { transform: translate(0, 0); }
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
             width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            z-index: 10;
+        }
+        
+        .glass-panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
         
         h1 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2em;
-            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        h1 span {
+            color: var(--primary-glow);
         }
         
         .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 0.9em;
-        }
-        
-        .volume-section {
-            margin-bottom: 30px;
+            color: var(--text-gray);
+            font-weight: 300;
+            margin-bottom: 2rem;
         }
         
         .volume-display {
-            text-align: center;
-            font-size: 3.5em;
-            font-weight: bold;
-            color: #667eea;
-            margin: 20px 0;
+            font-size: 4em;
+            font-weight: 700;
+            color: var(--primary-glow);
+            margin: 1rem 0;
+            text-shadow: 0 0 20px rgba(157, 78, 221, 0.5);
         }
         
+        /* Custom Range Slider */
         .slider-container {
+            width: 100%;
+            margin: 2rem 0;
             position: relative;
-            padding: 20px 0;
         }
         
-        input[type="range"] {
+        input[type=range] {
             -webkit-appearance: none;
             width: 100%;
-            height: 12px;
-            border-radius: 6px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
             outline: none;
-            opacity: 0.9;
-            transition: opacity 0.2s;
         }
-        
-        input[type="range"]:hover {
-            opacity: 1;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb {
+
+        input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            background: white;
+            background: var(--primary-glow);
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 0 15px rgba(199, 125, 255, 0.6);
             transition: transform 0.2s;
+            margin-top: -10px; /* Center thumb */
         }
         
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
-        }
-        
-        input[type="range"]::-moz-range-thumb {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: white;
+        input[type=range]::-webkit-slider-runnable-track {
+             width: 100%;
+            height: 8px;
             cursor: pointer;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        input[type=range]:active::-webkit-slider-thumb {
+            transform: scale(1.2);
         }
         
         .volume-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 10px;
-            color: #999;
+            margin-top: 15px;
+            color: var(--text-gray);
             font-size: 0.9em;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.1em;
-            cursor: pointer;
-            width: 100%;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 0.95em;
-            display: none;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .info-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 30px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .info-box h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1em;
-        }
-        
-        .info-box p {
-            color: #666;
-            font-size: 0.9em;
-            line-height: 1.5;
+            font-weight: 500;
         }
         
         .quick-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            display: flex;
+            justify-content: center;
             gap: 10px;
-            margin: 20px 0;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
         
         .quick-btn {
-            background: #f8f9fa;
-            border: 2px solid #667eea;
-            color: #667eea;
-            padding: 10px;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-white);
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 0.9em;
-            font-weight: bold;
             transition: all 0.2s;
+            font-family: inherit;
+            flex: 1;
+            min-width: 60px;
         }
         
         .quick-btn:hover {
-            background: #667eea;
+            background: rgba(157, 78, 221, 0.3);
+            border-color: var(--primary-glow);
+            transform: translateY(-2px);
+        }
+        
+        .btn {
+            background: var(--primary);
+            border: none;
             color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: inherit;
+            width: 100%;
+            font-size: 1.1em;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         
+        .btn:hover {
+            background: var(--primary-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(157, 78, 221, 0.4);
+        }
         
+        .status {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            font-weight: 500;
+            display: none;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        .status.success {
+            background: rgba(0, 184, 148, 0.2);
+            border: 1px solid var(--success);
+            color: #55efc4;
+        }
+        
+        .status.error {
+            background: rgba(255, 118, 117, 0.2);
+            border: 1px solid var(--danger);
+            color: #fab1a0;
+        }
+        
+        /* Media Section */
         .media-section {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #e0e0e0;
+            margin-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+            padding-top: 2rem;
         }
         
-        .media-section h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.5em;
+        .media-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        h2 {
+            font-size: 1.2rem;
+            color: var(--text-white);
         }
         
         .media-count {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 10px;
+            border-radius: 20px;
             font-size: 0.8em;
-            color: #999;
-            font-weight: normal;
+            color: var(--primary-glow);
         }
         
         .media-list {
-            max-height: 400px;
+            max-height: 300px;
             overflow-y: auto;
-            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 0.5rem;
+        }
+        
+        .media-list::-webkit-scrollbar {
+             width: 6px;
+        }
+        .media-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .media-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
         }
         
         .media-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s;
+            padding: 0.8rem 1rem;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .media-item:hover {
-            background: #e9ecef;
-            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.05);
         }
         
         .media-info {
+            text-align: left;
             flex: 1;
+            overflow: hidden;
         }
         
         .media-name {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-            word-break: break-all;
+            font-weight: 500;
+            color: var(--text-white);
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .media-size {
-            font-size: 0.85em;
-            color: #999;
+            font-size: 0.8em;
+            color: var(--text-gray);
         }
         
         .delete-btn {
-            background: #dc3545;
-            color: white;
+            background: none;
             border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.4);
             cursor: pointer;
-            font-size: 0.9em;
+            padding: 5px 10px;
+            font-size: 1.1em;
             transition: all 0.2s;
-            white-space: nowrap;
         }
         
         .delete-btn:hover {
-            background: #c82333;
-            transform: scale(1.05);
+             color: var(--danger);
+             background: rgba(255, 118, 117, 0.1);
+             border-radius: 8px;
         }
         
         .empty-media {
-            text-align: center;
-            color: #999;
-            padding: 40px 20px;
+            padding: 2rem;
+            color: var(--text-gray);
             font-style: italic;
         }
         
         .add-media-btn {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            display: block;
+            margin-top: 1rem;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
             color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.1em;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
             text-decoration: none;
-            display: inline-block;
-            text-align: center;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: transform 0.2s;
+             box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
         }
         
         .add-media-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+             transform: translateY(-2px);
+             box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
         }
         
-        .add-media-btn:active {
-            transform: translateY(0);
-        }
-
         .wifi-btn {
-            background: #ffc107;
-            color: #333;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.1em;
-            cursor: pointer;
+            background: transparent;
+            border: 1px solid var(--warning);
+            color: var(--warning);
+            margin-top: 1rem;
+            padding: 0.8rem;
+            border-radius: 12px;
             width: 100%;
-            margin-top: 15px;
-            transition: transform 0.2s;
-            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s;
         }
         
         .wifi-btn:hover {
-            background: #e0a800;
-            transform: translateY(-2px);
+             background: rgba(245, 166, 35, 0.1);
+             transform: translateY(-2px);
         }
         
-        @media (max-width: 480px) {
-            .container {
-                padding: 25px;
-            }
-            
-            h1 {
-                font-size: 1.5em;
-            }
-            
-            .volume-display {
-                font-size: 2.5em;
-            }
-            
-            .media-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .delete-btn {
-                width: 100%;
-            }
+        .info-box {
+            margin-top: 2rem;
+            text-align: left;
+            font-size: 0.9em;
+            color: var(--text-gray);
+            border-top: 1px solid var(--glass-border);
+            padding-top: 1rem;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
+    <div class="background-glow"></div>
+
     <div class="container">
-        <h1>🔊 Racontine - Contrôle du Son</h1>
-        <p class="subtitle">Ajustez le volume sans couper le WiFi</p>
-        
-        <div class="volume-section">
+        <div class="glass-panel">
+            <h1>Racontine <span>Contrôle</span></h1>
+            <p class="subtitle">Gestion du volume et des médias</p>
+            
             <div class="volume-display" id="volumeDisplay">{{ current_volume }}%</div>
             
             <div class="quick-buttons">
@@ -523,19 +564,17 @@ HTML_TEMPLATE = """
                     <span>🔊 Max</span>
                 </div>
             </div>
+            
+            <button class="btn" onclick="saveVolume()">💾 Sauvegarder (Redémarre)</button>
+            
+            <div id="status" class="status"></div>
         </div>
-        
-        <button class="btn" onclick="saveVolume()">💾 Sauvegarder et Redémarrer Racontine</button>
-        
-        
-        <div id="status" class="status"></div>
-        
-        <!-- Section Gestion des Médias -->
-        <div class="media-section">
-            <h2>
-                📁 Bibliothèque Audio
-                <span class="media-count" id="mediaCount">{{ audio_files|length }} fichier(s)</span>
-            </h2>
+
+        <div class="glass-panel">
+            <div class="media-header">
+                <h2>📚 Bibliothèque</h2>
+                <span class="media-count" id="mediaCount">{{ audio_files|length }}</span>
+            </div>
             
             <div class="media-list" id="mediaList">
                 {% if audio_files %}
@@ -545,8 +584,8 @@ HTML_TEMPLATE = """
                             <div class="media-name">🎵 {{ file.name }}</div>
                             <div class="media-size">{{ file.size }}</div>
                         </div>
-                        <button class="delete-btn" data-filename="{{ file.name }}" onclick="deleteMedia(this.getAttribute('data-filename'), {{ loop.index }})">
-                            🗑️ Supprimer
+                        <button class="delete-btn" data-filename="{{ file.name }}" onclick="deleteMedia(this.getAttribute('data-filename'), {{ loop.index }})" title="Supprimer">
+                            🗑️
                         </button>
                     </div>
                     {% endfor %}
@@ -560,19 +599,12 @@ HTML_TEMPLATE = """
             <a href="https://lumios-le-jeu.github.io/alice-media/" target="_blank" class="add-media-btn">
                 ➕ Ajouter / Générer des Disques
             </a>
+            
+            <button class="wifi-btn" onclick="startWifiSetup()">📶 Configurer WiFi</button>
         </div>
-
-        <button class="wifi-btn" onclick="startWifiSetup()">📶 Configurer WiFi</button>
         
         <div class="info-box">
-            <h3>ℹ️ Comment ça marche ?</h3>
-            <p>
-                <strong>1.</strong> Ajustez le volume avec le curseur<br>
-                <strong>2.</strong> Cliquez sur "Sauvegarder"<br>
-                <strong>3.</strong> Racontine redémarre automatiquement avec le nouveau volume<br>
-                <br>
-                <strong>IP du serveur:</strong> {{ server_ip }}:{{ server_port }}
-            </p>
+            <p><strong>IP:</strong> {{ server_ip }}:{{ server_port }}</p>
         </div>
     </div>
     
@@ -605,7 +637,7 @@ HTML_TEMPLATE = """
                 
                 if (data.success) {
                     statusDiv.className = 'status success';
-                    statusDiv.innerText = '✅ ' + data.message + ' Racontine va redémarrer...';
+                    statusDiv.innerText = '✅ ' + data.message + ' Redémarrage...';
                 } else {
                     statusDiv.className = 'status error';
                     statusDiv.innerText = '❌ Erreur: ' + data.message;
@@ -628,7 +660,7 @@ HTML_TEMPLATE = """
             const statusDiv = document.getElementById('status');
             statusDiv.style.display = 'none';
             statusDiv.className = 'status success';
-            statusDiv.innerText = '⏳ Activation du mode Hotspot en cours... Vous allez être déconnecté.';
+            statusDiv.innerText = '⏳ Activation du mode Hotspot...';
             statusDiv.style.display = 'block';
             
             // Ouvrir la page de configuration dans un nouvel onglet
@@ -652,44 +684,33 @@ HTML_TEMPLATE = """
             try {
                 const response = await fetch('/delete', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ filename: filename })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Supprimer visuellement l'élément
                     const mediaItem = document.getElementById('media-' + index);
                     if (mediaItem) {
                         mediaItem.style.opacity = '0';
-                        mediaItem.style.transform = 'translateX(-20px)';
                         setTimeout(() => {
                             mediaItem.remove();
-                            
-                            // Mettre à jour le compteur
                             const remaining = document.querySelectorAll('.media-item').length;
-                            document.getElementById('mediaCount').innerText = remaining + ' fichier(s)';
-                            
-                            // Afficher message vide si plus de fichiers
+                            document.getElementById('mediaCount').innerText = remaining;
                             if (remaining === 0) {
                                 document.getElementById('mediaList').innerHTML = 
                                     '<div class="empty-media">📭 Aucun fichier audio pour le moment</div>';
                             }
-                        }, 300);
+                        }, 200);
                     }
-                    
                     statusDiv.className = 'status success';
                     statusDiv.innerText = '✅ ' + data.message;
                 } else {
                     statusDiv.className = 'status error';
                     statusDiv.innerText = '❌ Erreur: ' + data.message;
                 }
-                
                 statusDiv.style.display = 'block';
-                
             } catch (error) {
                 statusDiv.className = 'status error';
                 statusDiv.innerText = '❌ Erreur de connexion: ' + error.message;
