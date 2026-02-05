@@ -40,6 +40,14 @@ sudo cp -r system/wifi_setup/* /home/alice/wifi_setup/
 sudo chown -R alice:alice /home/alice/wifi_setup
 sudo chmod +x /home/alice/wifi_setup/wifi_setup_server.py
 
+# Update autohotspot script and configs
+echo "Mise à jour du script Hotspot..."
+sudo cp system/autohotspot.sh /home/alice/autohotspot.sh
+sudo cp system/setup_hostapd.conf /home/alice/setup_hostapd.conf
+sudo cp system/setup_dnsmasq.conf /home/alice/setup_dnsmasq.conf
+sudo chown alice:alice /home/alice/autohotspot.sh /home/alice/setup_*.conf
+sudo chmod +x /home/alice/autohotspot.sh
+
 echo ""
 echo -e "${YELLOW}⚙️  Installation du service systemd...${NC}"
 sudo cp system/alice_son.service /etc/systemd/system/alice_son.service

@@ -402,16 +402,24 @@ async function deleteFile(name, path, sha) {
     }
 }
 
-async function generateQRFromUrl(rawUrl, name) {
+async function generateQRFromUrl(rawUrl, name, size = 0) {
     resetUIForUpload();
+    showToast("Génération tag en cours... ⏳");
 
+    // Vérifier si une URL courte existe déjà en cache
     const existing = ratings[name] || {};
-    let finalUrl = (typeof existing === 'object' && existing.shortUrl && (existing.shortUrl.includes('tinyurl.com') || existing.shortUrl.includes('v.gd') || existing.shortUrl.includes('is.gd')))
-        ? existing.shortUrl
-        : rawUrl;
+    if (typeof existing === 'object' && existing.shortUrl && (existing.shortUrl.includes('tinyurl.com') || existing.shortUrl.includes('v.gd') || existing.shortUrl.includes('is.gd'))) {
+        updateProgress(100, "Terminé (Cache) !");
+        showResult(existing.shortUrl, name);
+        return;
+    }
 
-    if (finalUrl === rawUrl) {
-        updateProgress(50, "Lien court...");
+    // Sinon, on tente de générer une URL courte avec un Timeout de 40s
+    let finalUrl = rawUrl;
+    updateProgress(30, "Génération lien court...");
+
+    // Promesse de raccourcissement
+    const shortenPromise = (async () => {
         try {
             const shortenerUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(rawUrl)}`)}`;
             const shortRes = await fetch(shortenerUrl);
@@ -419,11 +427,32 @@ async function generateQRFromUrl(rawUrl, name) {
                 const data = await shortRes.json();
                 const text = data.contents;
                 if (text && text.startsWith('http')) {
-                    finalUrl = text;
-                    saveShortUrl(name, finalUrl);
+                    return text;
                 }
             }
-        } catch (e) { console.warn("Shortener failed"); }
+        } catch (e) {
+            console.warn("Shortener failed or too slow");
+        }
+        return null; // Échec
+    })();
+
+    // Promesse de Timeout (40 secondes)
+    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('TIMEOUT'), 40000));
+
+    // Course : Le premier qui finit gagne
+    const result = await Promise.race([shortenPromise, timeoutPromise]);
+
+    if (result === 'TIMEOUT') {
+        showToast("Délai dépassé (>40s) : Utilisation URL standard ⚠️");
+        console.log("Timeout shortener: Fallback to raw URL");
+        finalUrl = rawUrl;
+    } else if (result) {
+        finalUrl = result;
+        saveShortUrl(name, finalUrl);
+        showToast("Lien raccourci généré ! ✨");
+    } else {
+        // Échec technique du shortener
+        finalUrl = rawUrl;
     }
 
     updateProgress(100, "Terminé !");
