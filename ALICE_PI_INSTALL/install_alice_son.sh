@@ -69,15 +69,33 @@ echo "========================================"
 sudo systemctl status alice_son.service --no-pager
 
 echo ""
+echo ""
+echo -e "${YELLOW}🏷️  Configuration du nom réseau (Hostname)...${NC}"
+CURRENT_HOSTNAME=$(cat /etc/hostname | tr -d " \t\n\r")
+NEW_HOSTNAME="racontine"
+
+if [ "$CURRENT_HOSTNAME" != "$NEW_HOSTNAME" ]; then
+    echo "Changement du nom : $CURRENT_HOSTNAME -> $NEW_HOSTNAME"
+    echo "$NEW_HOSTNAME" | sudo tee /etc/hostname > /dev/null
+    sudo sed -i "s/127.0.1.1.*$CURRENT_HOSTNAME/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
+    echo "✅ Nom changé. Un redémarrage sera nécessaire."
+else
+    echo "✅ Le nom est déjà 'racontine'."
+fi
+
+echo ""
 echo "========================================"
 echo "🌐 Accès à l'interface:"
 echo "========================================"
 IP=$(hostname -I | awk '{print $1}')
-echo -e "${GREEN}http://${IP}:8080${NC}"
+echo -e "${GREEN}http://racontine.local:8080${NC} (Recommandé)"
+echo -e "${GREEN}http://${IP}:8080${NC} (IP Directe)"
 echo ""
 echo "📝 Commandes utiles:"
 echo "  • Voir les logs:        sudo journalctl -u alice_son.service -f"
 echo "  • Redémarrer:           sudo systemctl restart alice_son.service"
 echo "  • Arrêter:              sudo systemctl stop alice_son.service"
-echo "  • Désactiver au boot:   sudo systemctl disable alice_son.service"
+echo ""
+echo -e "${YELLOW}⚠️  IMPORTANT : Si le hostname a changé, redémarrez le Pi maintenant :${NC}"
+echo "   sudo reboot"
 echo ""

@@ -852,7 +852,8 @@ if __name__ == '__main__':
     
     local_ip = get_local_ip()
     print(f"📡 IP locale: {local_ip}")
-    print(f"🌐 URL d'accès: http://{local_ip}:{DEFAULT_PORT}")
+    print(f"🔗 URL Locale: http://racontine.local:{DEFAULT_PORT} (Recommandé)")
+    print(f"🌐 URL Directe: http://{local_ip}:{DEFAULT_PORT}")
     print(f"📁 Fichier config: {CONFIG_FILE}")
     print("=" * 50)
     print("Appuyez sur CTRL+C pour arrêter\n")
