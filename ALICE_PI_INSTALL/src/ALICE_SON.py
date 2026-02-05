@@ -421,6 +421,32 @@ HTML_TEMPLATE = """
             font-style: italic;
         }
         
+        .add-media-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .add-media-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+        }
+        
+        .add-media-btn:active {
+            transform: translateY(0);
+        }
+        
         @media (max-width: 480px) {
             .container {
                 padding: 25px;
@@ -502,6 +528,10 @@ HTML_TEMPLATE = """
                     </div>
                 {% endif %}
             </div>
+            
+            <a href="https://lumios-le-jeu.github.io/alice-media/" target="_blank" class="add-media-btn">
+                ➕ Ajouter / Générer des Disques
+            </a>
         </div>
         
         <div class="info-box">
