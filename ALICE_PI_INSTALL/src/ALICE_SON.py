@@ -80,6 +80,62 @@ def restart_alice_service():
         return False
 
 
+def get_audio_files():
+    """Liste tous les fichiers audio dans /home/alice/media/audio"""
+    audio_dir = "/home/alice/media/audio"
+    
+    # Fallback pour développement
+    if not os.path.exists(audio_dir):
+        audio_dir = "./media/audio"
+        os.makedirs(audio_dir, exist_ok=True)
+    
+    try:
+        files = []
+        if os.path.exists(audio_dir):
+            for filename in sorted(os.listdir(audio_dir)):
+                filepath = os.path.join(audio_dir, filename)
+                if os.path.isfile(filepath):
+                    # Calculer la taille du fichier
+                    size_bytes = os.path.getsize(filepath)
+                    size_mb = size_bytes / (1024 * 1024)
+                    
+                    files.append({
+                        'name': filename,
+                        'size': f"{size_mb:.2f} MB",
+                        'size_bytes': size_bytes
+                    })
+        return files
+    except Exception as e:
+        print(f"⚠️ Erreur lors du listage des fichiers: {e}")
+        return []
+
+
+def delete_audio_file(filename):
+    """Supprime un fichier audio"""
+    audio_dir = "/home/alice/media/audio"
+    
+    # Fallback pour développement
+    if not os.path.exists(audio_dir):
+        audio_dir = "./media/audio"
+    
+    try:
+        filepath = os.path.join(audio_dir, filename)
+        
+        # Vérification de sécurité : le fichier doit être dans le dossier audio
+        if not filepath.startswith(audio_dir):
+            return False, "Chemin invalide"
+        
+        if os.path.exists(filepath) and os.path.isfile(filepath):
+            os.remove(filepath)
+            print(f"🗑️ Fichier supprimé : {filename}")
+            return True, f"Fichier {filename} supprimé avec succès"
+        else:
+            return False, "Fichier introuvable"
+    except Exception as e:
+        print(f"❌ Erreur suppression : {e}")
+        return False, str(e)
+
+
 # Template HTML avec design moderne
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -281,6 +337,90 @@ HTML_TEMPLATE = """
             color: white;
         }
         
+        
+        .media-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .media-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .media-count {
+            font-size: 0.8em;
+            color: #999;
+            font-weight: normal;
+        }
+        
+        .media-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        
+        .media-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .media-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .media-info {
+            flex: 1;
+        }
+        
+        .media-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+        
+        .media-size {
+            font-size: 0.85em;
+            color: #999;
+        }
+        
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .delete-btn:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+        
+        .empty-media {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        
         @media (max-width: 480px) {
             .container {
                 padding: 25px;
@@ -292,6 +432,16 @@ HTML_TEMPLATE = """
             
             .volume-display {
                 font-size: 2.5em;
+            }
+            
+            .media-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .delete-btn {
+                width: 100%;
             }
         }
     </style>
@@ -323,7 +473,36 @@ HTML_TEMPLATE = """
         
         <button class="btn" onclick="saveVolume()">💾 Sauvegarder et Redémarrer Alice</button>
         
+        
         <div id="status" class="status"></div>
+        
+        <!-- Section Gestion des Médias -->
+        <div class="media-section">
+            <h2>
+                📁 Bibliothèque Audio
+                <span class="media-count" id="mediaCount">{{ audio_files|length }} fichier(s)</span>
+            </h2>
+            
+            <div class="media-list" id="mediaList">
+                {% if audio_files %}
+                    {% for file in audio_files %}
+                    <div class="media-item" id="media-{{ loop.index }}">
+                        <div class="media-info">
+                            <div class="media-name">🎵 {{ file.name }}</div>
+                            <div class="media-size">{{ file.size }}</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteMedia('{{ file.name }}', {{ loop.index }})">
+                            🗑️ Supprimer
+                        </button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-media">
+                        📭 Aucun fichier audio pour le moment
+                    </div>
+                {% endif %}
+            </div>
+        </div>
         
         <div class="info-box">
             <h3>ℹ️ Comment ça marche ?</h3>
@@ -381,6 +560,62 @@ HTML_TEMPLATE = """
             }
         }
         
+        async function deleteMedia(filename, index) {
+            if (!confirm(`Êtes-vous sûr de vouloir supprimer "${filename}" ?`)) {
+                return;
+            }
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ filename: filename })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Supprimer visuellement l'élément
+                    const mediaItem = document.getElementById('media-' + index);
+                    if (mediaItem) {
+                        mediaItem.style.opacity = '0';
+                        mediaItem.style.transform = 'translateX(-20px)';
+                        setTimeout(() => {
+                            mediaItem.remove();
+                            
+                            // Mettre à jour le compteur
+                            const remaining = document.querySelectorAll('.media-item').length;
+                            document.getElementById('mediaCount').innerText = remaining + ' fichier(s)';
+                            
+                            // Afficher message vide si plus de fichiers
+                            if (remaining === 0) {
+                                document.getElementById('mediaList').innerHTML = 
+                                    '<div class="empty-media">📭 Aucun fichier audio pour le moment</div>';
+                            }
+                        }, 300);
+                    }
+                    
+                    statusDiv.className = 'status success';
+                    statusDiv.innerText = '✅ ' + data.message;
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerText = '❌ Erreur: ' + data.message;
+                }
+                
+                statusDiv.style.display = 'block';
+                
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerText = '❌ Erreur de connexion: ' + error.message;
+                statusDiv.style.display = 'block';
+            }
+        }
+        
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             const slider = document.getElementById('volumeSlider');
@@ -406,12 +641,14 @@ def index():
     config = load_config()
     current_volume = config.get("volume", 90)
     local_ip = get_local_ip()
+    audio_files = get_audio_files()
     
     return render_template_string(
         HTML_TEMPLATE,
         current_volume=current_volume,
         server_ip=local_ip,
-        server_port=DEFAULT_PORT
+        server_port=DEFAULT_PORT,
+        audio_files=audio_files
     )
 
 
@@ -462,6 +699,33 @@ def get_volume():
     return jsonify({
         'volume': config.get('volume', 90)
     })
+
+
+@app.route('/delete', methods=['POST'])
+def delete():
+    """API pour supprimer un fichier audio"""
+    try:
+        data = request.get_json()
+        filename = data.get('filename', '')
+        
+        if not filename:
+            return jsonify({
+                'success': False,
+                'message': 'Nom de fichier manquant'
+            })
+        
+        success, message = delete_audio_file(filename)
+        
+        return jsonify({
+            'success': success,
+            'message': message
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
 
 
 if __name__ == '__main__':
