@@ -545,7 +545,7 @@ HTML_TEMPLATE = """
                             <div class="media-name">🎵 {{ file.name }}</div>
                             <div class="media-size">{{ file.size }}</div>
                         </div>
-                        <button class="delete-btn" onclick="deleteMedia('{{ file.name }}', {{ loop.index }})">
+                        <button class="delete-btn" data-filename="{{ file.name }}" onclick="deleteMedia(this.getAttribute('data-filename'), {{ loop.index }})">
                             🗑️ Supprimer
                         </button>
                     </div>
@@ -621,7 +621,7 @@ HTML_TEMPLATE = """
         }
         
         async function startWifiSetup() {
-            if (!confirm("⚠️ ATTENTION : Cela va couper la connexion actuelle et activer le mode Hotspot.\n\nVous devrez vous connecter au WiFi 'ALICE_SETUP' et aller sur http://192.168.50.1 pour configurer le réseau.\n\nVoulez-vous continuer ?")) {
+            if (!confirm("⚠️ ATTENTION : Cela va couper la connexion actuelle et activer le mode Hotspot.\\n\\nVous devrez vous connecter au WiFi 'ALICE_SETUP' et aller sur http://192.168.50.1 pour configurer le réseau.\\n\\nVoulez-vous continuer ?")) {
                 return;
             }
             
