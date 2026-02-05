@@ -39,9 +39,18 @@ sudo systemctl daemon-reload
 
 echo ""
 echo -e "${YELLOW}🔐 Configuration des permissions sudo...${NC}"
-sudo cp system/alice-sudoers /etc/sudoers.d/alice-son
+# Création directe du fichier pour éviter les erreurs de format (CRLF)
+echo "alice ALL=(ALL) NOPASSWD: /bin/systemctl restart alice.service" | sudo tee /etc/sudoers.d/alice-son > /dev/null
+echo "alice ALL=(ALL) NOPASSWD: /usr/bin/bash /home/alice/autohotspot.sh force" | sudo tee -a /etc/sudoers.d/alice-son > /dev/null
 sudo chmod 0440 /etc/sudoers.d/alice-son
-echo "    → alice peut maintenant redémarrer alice.service sans mot de passe"
+
+# Vérification de la syntaxe
+if sudo visudo -c -f /etc/sudoers.d/alice-son; then
+    echo "    ✅ Syntaxe sudoers valide"
+else
+    echo -e "${RED}❌ Erreur de syntaxe dans sudoers !${NC}"
+    sudo rm /etc/sudoers.d/alice-son
+fi
 
 echo ""
 echo -e "${YELLOW}🚀 Activation du service au démarrage...${NC}"
