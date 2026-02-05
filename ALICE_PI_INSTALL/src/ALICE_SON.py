@@ -631,6 +631,9 @@ HTML_TEMPLATE = """
             statusDiv.innerText = '⏳ Activation du mode Hotspot en cours... Vous allez être déconnecté.';
             statusDiv.style.display = 'block';
             
+            // Ouvrir la page de configuration dans un nouvel onglet
+            window.open('http://192.168.50.1/', '_blank');
+            
             try {
                 await fetch('/wifi-setup', { method: 'POST' });
             } catch (e) {
