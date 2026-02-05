@@ -77,6 +77,15 @@ def restart_alice_service():
         return True
     except Exception as e:
         print(f"⚠️ Impossible de redémarrer alice.service: {e}")
+
+def enable_wifi_setup():
+    """Active le mode Hotspot pour la configuration WiFi"""
+    try:
+        # On lance le script en arrière-plan car il va couper le réseau
+        subprocess.Popen(["sudo", "bash", "/home/alice/autohotspot.sh", "force"])
+        return True
+    except Exception as e:
+        print(f"⚠️ Impossible de lancer le hotspot: {e}")
         return False
 
 
@@ -446,6 +455,25 @@ HTML_TEMPLATE = """
         .add-media-btn:active {
             transform: translateY(0);
         }
+
+        .wifi-btn {
+            background: #ffc107;
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+        
+        .wifi-btn:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
         
         @media (max-width: 480px) {
             .container {
@@ -533,6 +561,8 @@ HTML_TEMPLATE = """
                 ➕ Ajouter / Générer des Disques
             </a>
         </div>
+
+        <button class="wifi-btn" onclick="startWifiSetup()">📶 Configurer WiFi</button>
         
         <div class="info-box">
             <h3>ℹ️ Comment ça marche ?</h3>
@@ -587,6 +617,24 @@ HTML_TEMPLATE = """
                 statusDiv.className = 'status error';
                 statusDiv.innerText = '❌ Erreur de connexion: ' + error.message;
                 statusDiv.style.display = 'block';
+            }
+        }
+        
+        async function startWifiSetup() {
+            if (!confirm("⚠️ ATTENTION : Cela va couper la connexion actuelle et activer le mode Hotspot.\n\nVous devrez vous connecter au WiFi 'ALICE_SETUP' et aller sur http://192.168.50.1 pour configurer le réseau.\n\nVoulez-vous continuer ?")) {
+                return;
+            }
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'none';
+            statusDiv.className = 'status success';
+            statusDiv.innerText = '⏳ Activation du mode Hotspot en cours... Vous allez être déconnecté.';
+            statusDiv.style.display = 'block';
+            
+            try {
+                await fetch('/wifi-setup', { method: 'POST' });
+            } catch (e) {
+                // On ignore l'erreur car la connexion va couper
             }
         }
         
@@ -755,6 +803,21 @@ def delete():
         return jsonify({
             'success': False,
             'message': str(e)
+        })
+
+
+@app.route('/wifi-setup', methods=['POST'])
+def wifi_setup():
+    """API pour activer le mode configuration WiFi"""
+    if enable_wifi_setup():
+        return jsonify({
+            'success': True,
+            'message': 'Mode Hotspot activé. Connectez-vous au WiFi "ALICE_SETUP".'
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': 'Erreur lors du lancement du hotspot'
         })
 
 
