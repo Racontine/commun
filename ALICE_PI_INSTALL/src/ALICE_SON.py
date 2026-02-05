@@ -152,7 +152,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔊 Alice - Contrôle du Son</title>
+    <title>🔊 Racontine - Contrôle</title>
     <style>
         * {
             margin: 0;
@@ -502,7 +502,7 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="container">
-        <h1>🔊 Alice - Contrôle du Son</h1>
+        <h1>🔊 Racontine - Contrôle du Son</h1>
         <p class="subtitle">Ajustez le volume sans couper le WiFi</p>
         
         <div class="volume-section">
@@ -525,7 +525,7 @@ HTML_TEMPLATE = """
             </div>
         </div>
         
-        <button class="btn" onclick="saveVolume()">💾 Sauvegarder et Redémarrer Alice</button>
+        <button class="btn" onclick="saveVolume()">💾 Sauvegarder et Redémarrer Racontine</button>
         
         
         <div id="status" class="status"></div>
@@ -569,7 +569,7 @@ HTML_TEMPLATE = """
             <p>
                 <strong>1.</strong> Ajustez le volume avec le curseur<br>
                 <strong>2.</strong> Cliquez sur "Sauvegarder"<br>
-                <strong>3.</strong> Alice redémarre automatiquement avec le nouveau volume<br>
+                <strong>3.</strong> Racontine redémarre automatiquement avec le nouveau volume<br>
                 <br>
                 <strong>IP du serveur:</strong> {{ server_ip }}:{{ server_port }}
             </p>
@@ -605,7 +605,7 @@ HTML_TEMPLATE = """
                 
                 if (data.success) {
                     statusDiv.className = 'status success';
-                    statusDiv.innerText = '✅ ' + data.message + ' Alice va redémarrer...';
+                    statusDiv.innerText = '✅ ' + data.message + ' Racontine va redémarrer...';
                 } else {
                     statusDiv.className = 'status error';
                     statusDiv.innerText = '❌ Erreur: ' + data.message;
@@ -826,7 +826,7 @@ def wifi_setup():
 
 if __name__ == '__main__':
     print("=" * 50)
-    print("🔊 ALICE_SON - Serveur de contrôle du volume")
+    print("🔊 RACONTINE_SON - Serveur de contrôle du volume")
     print("=" * 50)
     
     local_ip = get_local_ip()
