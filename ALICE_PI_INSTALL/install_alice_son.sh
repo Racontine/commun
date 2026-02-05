@@ -33,6 +33,14 @@ sudo chown alice:alice /home/alice/ALICE_SON.py
 sudo chmod +x /home/alice/ALICE_SON.py
 
 echo ""
+echo -e "${YELLOW}📡 Installation de l'interface hotspot (Racontine)...${NC}"
+# Créer le dossier et copier les fichiers
+sudo mkdir -p /home/alice/wifi_setup
+sudo cp -r system/wifi_setup/* /home/alice/wifi_setup/
+sudo chown -R alice:alice /home/alice/wifi_setup
+sudo chmod +x /home/alice/wifi_setup/wifi_setup_server.py
+
+echo ""
 echo -e "${YELLOW}⚙️  Installation du service systemd...${NC}"
 sudo cp system/alice_son.service /etc/systemd/system/alice_son.service
 sudo systemctl daemon-reload

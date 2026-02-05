@@ -3,7 +3,7 @@
 # Chemins
 HOSTAPD_CONF="/home/alice/setup_hostapd.conf"
 DNSMASQ_CONF="/home/alice/setup_dnsmasq.conf"
-SETUP_SCRIPT="/home/alice/alice_setup.py"
+SETUP_SCRIPT="/home/alice/wifi_setup/wifi_setup_server.py"
 
 # --- FIX LINE ENDINGS (CRLF -> LF) ---
 # Sécurité : on nettoie les fichiers de conf au cas où ils viennent de Windows
