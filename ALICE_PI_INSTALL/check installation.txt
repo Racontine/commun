@@ -1,0 +1,12 @@
+📋 Vérifier l'Installation
+Une fois que le script a terminé (ou après avoir corrigé le hostname), vérifiez que tout fonctionne :
+
+bash
+# 1. Vérifier que Flask est installé
+python3 -c "import flask; print('Flask OK:', flask.__version__)"
+# 2. Vérifier que ALICE_SON.py existe
+ls -l /home/alice/ALICE_SON.py
+# 3. Vérifier le service
+sudo systemctl status alice_son.service
+# 4. Trouver l'IP pour accéder à l'interface
+hostname -I
