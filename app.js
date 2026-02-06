@@ -1,6 +1,6 @@
 /* Configuration State */
-let REPO_OWNER = '';
-let REPO_NAME = '';
+let REPO_OWNER = 'Racontine';
+let REPO_NAME = 'commun';
 const BRANCH = 'main'; // Could be dynamic too, but main is standard
 
 /* DOM Elements */
@@ -63,8 +63,8 @@ saveConfigBtn.addEventListener('click', () => {
 });
 
 function loadConfig() {
-    REPO_OWNER = localStorage.getItem('gh_owner') || '';
-    REPO_NAME = localStorage.getItem('gh_repo') || '';
+    REPO_OWNER = localStorage.getItem('gh_owner') || 'Racontine';
+    REPO_NAME = localStorage.getItem('gh_repo') || 'commun';
     const token = localStorage.getItem('gh_pat') || '';
 
     // Fill inputs

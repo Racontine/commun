@@ -10,9 +10,9 @@ AUDIO_DIR = os.path.join(BASE_DIR, "media", "audio", "Radio_Classique")
 # FOLDERS détectés automatiquement si le nom est un nombre (ex: "16" -> 16s)
 
 
-# GitHub Config (Auto-detected)
-REPO_OWNER = "lumios-le-jeu"
-REPO_NAME = "alice-media"
+# GitHub Config (Media Repository)
+REPO_OWNER = "Racontine"
+REPO_NAME = "commun"
 BRANCH = "main"
 
 def trim_audio(file_path, cut_seconds):
@@ -82,22 +82,35 @@ def create_qr_code(data, output_path):
 
 def git_push_changes():
     """
-    Ajoute, commit et push les modifications sur Git.
+    Push modifications: media to 'commun' and code/tools to 'outil'.
     """
-    print("\n📦 Mise à jour Git...")
+    print("\n📦 Mise à jour des dépôts Racontine...")
     try:
-        # Git Add
+        # 1. Sauvegarde locale
         subprocess.run(["git", "add", "."], cwd=BASE_DIR, check=True)
-        
-        # Git Commit
         commit_msg = "Auto-update: Trim audio files & tags"
-        subprocess.run(["git", "commit", "-m", commit_msg], cwd=BASE_DIR, check=False) # check=False car commit peut être vide
+        subprocess.run(["git", "commit", "-m", commit_msg], cwd=BASE_DIR, check=False)
+
+        # 2. Push MEDIA vers commun (branche split-commun)
+        print("📤 Envoi des médias vers Racontine/commun...")
+        # On recrée la branche de split pour être sûr de n'envoyer que media
+        subprocess.run(["git", "checkout", "-B", "split-commun"], cwd=BASE_DIR, check=True)
+        subprocess.run(["git", "rm", "-rf", "."], cwd=BASE_DIR, check=True)
+        subprocess.run(["git", "checkout", "main", "--", "media", ".gitignore"], cwd=BASE_DIR, check=True)
+        subprocess.run(["git", "commit", "-m", "Update media"], cwd=BASE_DIR, check=False)
+        subprocess.run(["git", "push", "commun", "split-commun:main", "--force"], cwd=BASE_DIR, check=True)
+
+        # 3. Push OUTILS vers Outil (branche main sans media)
+        print("📤 Envoi des outils vers Racontine/Outil...")
+        subprocess.run(["git", "checkout", "main"], cwd=BASE_DIR, check=True)
+        subprocess.run(["git", "push", "outil", "main"], cwd=BASE_DIR, check=True)
         
-        # Git Push
-        subprocess.run(["git", "push", "origin", BRANCH], cwd=BASE_DIR, check=True)
-        print("✅  Git Push effectué avec succès !")
+        print("✅  Transferts Racontine effectués avec succès !")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Erreur Git: {e}")
+        print(f"❌ Erreur lors du transfert : {e}")
+    finally:
+        # Toujours revenir sur main
+        subprocess.run(["git", "checkout", "main"], cwd=BASE_DIR, check=False)
 
 def main():
     print("="*50)
