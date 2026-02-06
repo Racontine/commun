@@ -118,59 +118,68 @@ def main():
     print("="*50)
     
     files_processed = 0
+    total_new_tags = 0
     
     # Vérification du dossier racine
     if not os.path.exists(AUDIO_DIR):
         print(f"❌ Dossier racine introuvable: {AUDIO_DIR}")
         return
 
-    # Scan des dossiers numériques (ex: "12", "16", "40"...)
+    # --- PHASE 1: Dossiers numériques (Coupe + QR) ---
     for folder_name in os.listdir(AUDIO_DIR):
         folder_path = os.path.join(AUDIO_DIR, folder_name)
         
-        # On ignore les fichiers et les dossiers non-numériques
+        # On ne traite que les dossiers numériques
         if not os.path.isdir(folder_path) or not folder_name.isdigit():
             continue
 
         cut_duration = int(folder_name)
         print(f"\n📁 Dossier '{folder_name}' (Coupe auto à {cut_duration}s)")
-
         
         for filename in os.listdir(folder_path):
             if filename.lower().endswith(".mp3"):
                 file_path = os.path.join(folder_path, filename)
-                
-                # Nom du fichier QR
                 qr_filename = os.path.splitext(filename)[0] + "_qr.png"
                 qr_path = os.path.join(folder_path, qr_filename)
                 
-                # Check safeguards: if QR exists, assume file already processed
                 if os.path.exists(qr_path):
-                    print(f"   ⏩ {filename} déjà traité (Tag existant). Ignoré.")
                     continue
 
-                # 1. Modifier le MP3
                 if trim_audio(file_path, cut_duration):
                     files_processed += 1
                 
-                # 2. Générer le Tag (QR Code) (Moved logic here)
-                # Structure URL GitHub Raw
-                # media/audio/Radio_Classique/16/filename.mp3
                 rel_path = f"media/audio/Radio_Classique/{folder_name}/{filename}"
-                # Encoding URL path parts properly
                 rel_path_encoded = requests.utils.quote(rel_path) 
-                
                 raw_url = f"https://raw.githubusercontent.com/{REPO_OWNER}/{REPO_NAME}/{BRANCH}/{rel_path_encoded}"
                 
-                # Raccourcir l'URL (comme app.js)
                 short_url = generate_short_url(raw_url)
-                
                 create_qr_code(short_url, qr_path)
+                total_new_tags += 1
 
-    if files_processed > 0:
+    # --- PHASE 2: Racine du dossier Radio_Classique (QR uniquement, sans coupe) ---
+    print(f"\n📂 Racine de Radio_Classique (Tag uniquement)")
+    for filename in os.listdir(AUDIO_DIR):
+        if filename.lower().endswith(".mp3"):
+            file_path = os.path.join(AUDIO_DIR, filename)
+            qr_filename = os.path.splitext(filename)[0] + "_qr.png"
+            qr_path = os.path.join(AUDIO_DIR, qr_filename)
+            
+            if os.path.exists(qr_path):
+                continue
+
+            print(f"🏷️  Traitement de {filename} (Sans coupe)...")
+            rel_path = f"media/audio/Radio_Classique/{filename}"
+            rel_path_encoded = requests.utils.quote(rel_path) 
+            raw_url = f"https://raw.githubusercontent.com/{REPO_OWNER}/{REPO_NAME}/{BRANCH}/{rel_path_encoded}"
+            
+            short_url = generate_short_url(raw_url)
+            create_qr_code(short_url, qr_path)
+            total_new_tags += 1
+
+    if files_processed > 0 or total_new_tags > 0:
         git_push_changes()
     else:
-        print("\nℹ️  Aucun fichier MP3 n'a été traité.")
+        print("\nℹ️  Aucun nouveau fichier MP3 ou Tag à traiter.")
 
     print("\n✅ Opération terminée.")
 

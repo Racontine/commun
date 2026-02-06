@@ -1,4 +1,0 @@
-# Allow alice user to restart alice.service without password
-# This is needed for ALICE_SON.py to apply volume changes
-alice ALL=(ALL) NOPASSWD: /bin/systemctl restart alice.service
-alice ALL=(ALL) NOPASSWD: /usr/bin/bash /home/alice/autohotspot.sh force
